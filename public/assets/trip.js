@@ -18,8 +18,21 @@
   var statusList = document.querySelector("#status-list");
   var paymentList = document.querySelector("#payment-list");
   var ownerActions = document.querySelector("#owner-actions");
-  var readonlyBanner = document.querySelector("#readonly-banner");
   var deleteTripBtn = document.querySelector("#delete-trip");
+  var accessPrompt = document.querySelector("#access-prompt");
+  var accessTitle = document.querySelector("#access-title");
+  var accessText = document.querySelector("#access-text");
+  var accessLogin = document.querySelector("#access-login");
+  var tripContent = document.querySelector("#trip-content");
+  var personToggle = document.querySelector("#person-toggle");
+  var personCancel = document.querySelector("#person-cancel");
+  var expenseToggle = document.querySelector("#expense-toggle");
+  var expenseCancel = document.querySelector("#expense-cancel");
+  var shareToggle = document.querySelector("#share-toggle");
+  var sharePanel = document.querySelector("#share-panel");
+  var shareClose = document.querySelector("#share-close");
+  var settlePanel = document.querySelector("#settle-panel");
+  var settleClose = document.querySelector("#settle-close");
 
   var trip = null;
   var session = null;
@@ -132,10 +145,9 @@
     titleEl.textContent = trip.title;
     noteEl.textContent = trip.note || "Kişi ve harcama ekle, sonra hesabı çıkar.";
     shareUrl.value = window.PaybackTrips.publicUrl(trip.id);
-    personForm.hidden = !canEdit;
-    expenseForm.hidden = !canEdit;
-    ownerActions.hidden = !canEdit;
-    readonlyBanner.hidden = canEdit;
+    ownerActions.hidden = false;
+    personToggle.hidden = false;
+    expenseToggle.hidden = false;
   }
 
   function renderAll() {
@@ -211,18 +223,37 @@
     statusEl.textContent = "Yükleniyor…";
     try {
       session = await window.PaybackTrips.getOptionalSession();
-      trip = await window.PaybackTrips.getTrip(
-        id,
-        session && session.idToken
-      );
+      if (!session || !session.idToken) {
+        accessPrompt.hidden = false;
+        accessLogin.href =
+          window.PaybackConfig.authOrigin +
+          "/?returnTo=" +
+          encodeURIComponent(window.location.href);
+        statusEl.textContent = "";
+        return;
+      }
+
+      trip = await window.PaybackTrips.getTrip(id, session.idToken);
       if (!trip) {
         showMessage("Yolculuk bulunamadı.", "error");
         statusEl.textContent = "";
         return;
       }
       canEdit = Boolean(session && session.uid === trip.ownerUid);
+      if (!canEdit) {
+        accessPrompt.hidden = false;
+        accessTitle.textContent = "Erişim yok";
+        accessText.textContent =
+          "Bu düzenleme ekranına yalnızca yolculuk sahibi erişebilir.";
+        accessLogin.hidden = true;
+        statusEl.textContent = "";
+        return;
+      }
+
+      accessPrompt.hidden = true;
+      tripContent.hidden = false;
       renderAll();
-      statusEl.textContent = canEdit ? "Düzenlenebilir" : "Salt okunur";
+      statusEl.textContent = "Düzenlenebilir";
     } catch (error) {
       showMessage(error.message, "error");
       statusEl.textContent = "";
@@ -244,6 +275,8 @@
     try {
       await persist();
       personForm.reset();
+      personForm.hidden = true;
+      personToggle.hidden = false;
       showMessage("Kişi eklendi.", "success");
     } catch (error) {
       showMessage(error.message, "error");
@@ -295,7 +328,9 @@
         input.checked = true;
       });
       showMessage("Harcama eklendi.", "success");
-      settleResult.hidden = true;
+      expenseForm.hidden = true;
+      expenseToggle.hidden = false;
+      settlePanel.hidden = true;
     } catch (error) {
       showMessage(error.message, "error");
     }
@@ -336,14 +371,59 @@
     try {
       await persist();
       showMessage("Harcama silindi.", "success");
-      settleResult.hidden = true;
+      settlePanel.hidden = true;
     } catch (error) {
       showMessage(error.message, "error");
     }
   });
 
+  personToggle.addEventListener("click", function () {
+    personForm.hidden = false;
+    personToggle.hidden = true;
+    personForm.querySelector("#person-name").focus();
+  });
+
+  personCancel.addEventListener("click", function () {
+    personForm.hidden = true;
+    personToggle.hidden = false;
+    personForm.reset();
+  });
+
+  expenseToggle.addEventListener("click", function () {
+    if (!(trip.people || []).length) {
+      showMessage("Önce en az bir kişi ekle.", "error");
+      return;
+    }
+    expenseForm.hidden = false;
+    expenseToggle.hidden = true;
+    expenseForm.querySelector("#expense-label").focus();
+  });
+
+  expenseCancel.addEventListener("click", function () {
+    expenseForm.hidden = true;
+    expenseToggle.hidden = false;
+    expenseForm.reset();
+    peopleChecks.querySelectorAll('input[name="personIds"]').forEach(function (input) {
+      input.checked = true;
+    });
+  });
+
+  shareToggle.addEventListener("click", function () {
+    sharePanel.hidden = false;
+    shareUrl.focus();
+  });
+
+  shareClose.addEventListener("click", function () {
+    sharePanel.hidden = true;
+  });
+
   settleBtn.addEventListener("click", function () {
+    settlePanel.hidden = false;
     renderSettle();
+  });
+
+  settleClose.addEventListener("click", function () {
+    settlePanel.hidden = true;
   });
 
   copyLink.addEventListener("click", async function () {

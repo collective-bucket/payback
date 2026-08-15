@@ -22,7 +22,9 @@
         <span></span><span></span><span></span>
       </button>
       <div class="nav-cta">
-        <a class="btn btn-primary" href="#new-trip">Yolculuk ekle</a>
+        <button id="new-trip-toggle" class="btn btn-primary" type="button" hidden>
+          Yolculuk ekle
+        </button>
         <div class="cb-auth-controls" data-cb-auth></div>
       </div>
     </div>
@@ -41,7 +43,16 @@
         <div class="meta" id="home-status"></div>
       </section>
 
-      <section class="panel" id="new-trip">
+      <section id="login-prompt" class="panel auth-prompt" hidden>
+        <h2>Yolculuklarını kaydet</h2>
+        <p>
+          Yolculuk oluşturmak, kişileri ve harcamaları yönetmek için giriş yap.
+          Paylaşılan özetler giriş gerektirmez.
+        </p>
+        <a id="login-link" class="btn btn-primary" href="#">Giriş yap</a>
+      </section>
+
+      <section class="panel" id="new-trip" hidden>
         <h2>Yolculuk ekle</h2>
         <form id="create-form">
           <label for="trip-title">Ad</label>
@@ -52,6 +63,7 @@
 
           <div class="actions">
             <button class="btn btn-primary" type="submit">Oluştur</button>
+            <button id="cancel-trip" class="btn btn-ghost" type="button">Vazgeç</button>
           </div>
           <p id="create-message" class="message" role="status"></p>
         </form>

@@ -14,6 +14,10 @@
     ],
     "rewrites": [
       {
+        "source": "/s/**",
+        "destination": "/s.html"
+      },
+      {
         "source": "/y/**",
         "destination": "/y.html"
       }

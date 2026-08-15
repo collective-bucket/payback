@@ -5,6 +5,12 @@
   var statusEl = document.querySelector("#home-status");
   var form = document.querySelector("#create-form");
   var message = document.querySelector("#create-message");
+  var loginPrompt = document.querySelector("#login-prompt");
+  var loginLink = document.querySelector("#login-link");
+  var newTripPanel = document.querySelector("#new-trip");
+  var newTripToggle = document.querySelector("#new-trip-toggle");
+  var cancelTrip = document.querySelector("#cancel-trip");
+  var session = null;
 
   function setStatus(text) {
     statusEl.textContent = text || "";
@@ -16,18 +22,20 @@
   }
 
   async function load() {
-    var session;
-    try {
-      session = await window.PaybackTrips.requireSession();
-    } catch (error) {
-      listEl.innerHTML =
-        '<p class="empty error">' +
-        window.PaybackTrips.escapeHtml(error.message) +
-        "</p>";
+    session = await window.PaybackTrips.getOptionalSession();
+    if (!session || !session.idToken) {
+      loginPrompt.hidden = false;
+      loginLink.href =
+        window.PaybackConfig.authOrigin +
+        "/?returnTo=" +
+        encodeURIComponent(window.location.href);
+      listEl.innerHTML = "";
       setStatus("");
       return;
     }
 
+    loginPrompt.hidden = true;
+    newTripToggle.hidden = false;
     setStatus("Yükleniyor…");
     try {
       var trips = await window.PaybackTrips.listMine(session);
@@ -72,11 +80,14 @@
     event.preventDefault();
     showMessage("Oluşturuluyor…");
     try {
-      var session = await window.PaybackTrips.requireSession();
+      session = await window.PaybackTrips.getOptionalSession();
+      if (!session || !session.idToken) {
+        throw new Error("Yolculuk oluşturmak için giriş yap.");
+      }
       var trip = await window.PaybackTrips.createTrip(
         {
-          title: form.title.value,
-          note: form.note.value,
+          title: form.querySelector('[name="title"]').value,
+          note: form.querySelector('[name="note"]').value,
           people: [],
           expenses: []
         },
@@ -86,6 +97,19 @@
     } catch (error) {
       showMessage(error.message, "error");
     }
+  });
+
+  newTripToggle.addEventListener("click", function () {
+    newTripPanel.hidden = false;
+    newTripToggle.setAttribute("aria-expanded", "true");
+    form.querySelector('[name="title"]').focus();
+  });
+
+  cancelTrip.addEventListener("click", function () {
+    newTripPanel.hidden = true;
+    newTripToggle.setAttribute("aria-expanded", "false");
+    form.reset();
+    showMessage("");
   });
 
   load();

@@ -196,7 +196,7 @@
       window.location.hostname === "127.0.0.1"
         ? window.location.origin
         : window.PaybackConfig.siteOrigin;
-    return origin + "/y/" + encodeURIComponent(id);
+    return origin + "/s/" + encodeURIComponent(id);
   }
 
   function personName(trip, personId) {

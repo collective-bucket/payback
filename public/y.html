@@ -31,24 +31,31 @@
   <main>
     <div class="wrap">
       <p class="meta" id="trip-status"></p>
-      <div id="readonly-banner" class="readonly-banner" hidden>
-        Bu yolculuğu görüntülüyorsun. Düzenlemek için sahibi olarak giriş yap.
-      </div>
+      <section id="access-prompt" class="panel auth-prompt" hidden>
+        <h2 id="access-title">Giriş gerekli</h2>
+        <p id="access-text">Bu yolculuğu düzenlemek için sahibi olarak giriş yap.</p>
+        <a id="access-login" class="btn btn-primary" href="#">Giriş yap</a>
+      </section>
 
-      <section class="hero">
+      <div id="trip-content" hidden>
+        <section class="hero">
         <div>
           <h1 id="trip-title">Yolculuk</h1>
           <p id="trip-note"></p>
         </div>
         <div class="actions" id="owner-actions" hidden>
+          <button id="share-toggle" class="btn btn-ghost" type="button">Paylaş</button>
+          <button id="settle-btn" class="btn btn-primary" type="button">Hesabı çıkar</button>
           <button id="delete-trip" class="btn btn-ghost danger" type="button">Yolculuğu sil</button>
         </div>
-      </section>
+        </section>
 
-      <section class="panel">
+      <section id="share-panel" class="panel" hidden>
         <div class="panel-head">
           <h2>Paylaş</h2>
+          <button id="share-close" class="btn btn-ghost" type="button">Kapat</button>
         </div>
+        <p class="panel-intro">Bu link, giriş gerektirmeyen salt okunur özet sayfasına gider.</p>
         <div class="share-row">
           <input id="share-url" type="text" readonly />
           <button id="copy-link" class="btn btn-ghost" type="button">Linki kopyala</button>
@@ -58,6 +65,9 @@
       <section class="panel">
         <div class="panel-head">
           <h2>Kişiler</h2>
+          <button id="person-toggle" class="btn btn-primary" type="button" hidden>
+            Kişi ekle
+          </button>
         </div>
         <ul id="people-list" class="list"></ul>
         <form id="person-form" hidden>
@@ -65,6 +75,7 @@
           <input id="person-name" type="text" maxlength="60" placeholder="Ayşe" required />
           <div class="actions">
             <button class="btn btn-primary" type="submit">Ekle</button>
+            <button id="person-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
           </div>
         </form>
       </section>
@@ -72,6 +83,9 @@
       <section class="panel">
         <div class="panel-head">
           <h2>Harcamalar</h2>
+          <button id="expense-toggle" class="btn btn-primary" type="button" hidden>
+            Harcama ekle
+          </button>
         </div>
         <ul id="expense-list" class="list"></ul>
         <form id="expense-form" hidden>
@@ -89,16 +103,17 @@
 
           <div class="actions">
             <button class="btn btn-primary" type="submit">Harcama ekle</button>
+            <button id="expense-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
           </div>
         </form>
       </section>
 
-      <section class="panel">
+      <section id="settle-panel" class="panel" hidden>
         <div class="panel-head">
           <h2>Hesabı çıkar</h2>
-          <button id="settle-btn" class="btn btn-primary" type="button">Hesabı çıkar</button>
+          <button id="settle-close" class="btn btn-ghost" type="button">Kapat</button>
         </div>
-        <div id="settle-result" class="settle-grid" hidden>
+        <div id="settle-result" class="settle-grid">
           <div>
             <h3>Durum</h3>
             <div id="status-list"></div>
@@ -111,6 +126,7 @@
       </section>
 
       <p id="trip-message" class="message" role="status"></p>
+      </div>
     </div>
   </main>
 

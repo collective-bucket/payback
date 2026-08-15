@@ -16,6 +16,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -173,6 +174,16 @@ main { flex: 1; padding: 40px 0 56px; }
 .panel h2 {
   margin: 0 0 14px;
   font-size: 18px;
+}
+
+.panel-intro,
+.auth-prompt p {
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+
+.auth-prompt {
+  max-width: 560px;
 }
 
 .panel-head {

@@ -8,13 +8,15 @@ Collective Bucket altında yolculuk harcamalarını kişiler arasında denkleşt
 - Kişi ekle
 - Harcama ekle (ödeyen, açıklama, tutar, dahil kişiler)
 - Hesabı çıkar → kim kime ne verir
-- Paylaşım linki ile herkese açık okuma
+- Düzenleme ekranı yalnızca yolculuk sahibine açık
+- Paylaşım linkinde herkese açık harcama ve hesap özeti
 
 ## Adresler
 
 - Canlı: `https://payback.collectivebucket.com`
 - Hosting site: `cbucket-payback`
-- Yolculuk: `/y/{id}`
+- Düzenleme: `/y/{id}`
+- Paylaşılan özet: `/s/{id}`
 
 ## Yerel
 

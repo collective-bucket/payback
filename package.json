@@ -6,7 +6,7 @@
   "scripts": {
     "serve": "firebase emulators:start --only hosting",
     "deploy": "firebase deploy --only hosting:payback,firestore:rules",
-    "check": "node --check public/assets/firestore.js && node --check public/assets/trips.js && node --check public/assets/settle.js && node --check public/assets/home.js && node --check public/assets/trip.js && node --check public/assets/nav.js"
+    "check": "node --check public/assets/firestore.js && node --check public/assets/trips.js && node --check public/assets/settle.js && node --check public/assets/home.js && node --check public/assets/trip.js && node --check public/assets/summary.js && node --check public/assets/nav.js"
   },
   "devDependencies": {
     "firebase-tools": "^15.27.0"
