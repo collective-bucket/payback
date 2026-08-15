@@ -9,6 +9,11 @@
   var balancesEl = document.querySelector("#summary-balances");
   var paymentsEl = document.querySelector("#summary-payments");
   var messageEl = document.querySelector("#summary-message");
+  var shareButton = document.querySelector("#share-summary");
+  var copyButton = document.querySelector("#copy-summary-link");
+  var shareMessageEl = document.querySelector("#share-message");
+  var summaryUrl = "";
+  var summaryTitle = "";
 
   function summaryIdFromPath() {
     var parts = window.location.pathname.split("/").filter(Boolean);
@@ -19,6 +24,16 @@
   function showMessage(text, type) {
     messageEl.textContent = text || "";
     messageEl.className = "message" + (type ? " message-" + type : "");
+  }
+
+  function showShareMessage(text, type) {
+    shareMessageEl.textContent = text || "";
+    shareMessageEl.className = "message" + (type ? " message-" + type : "");
+  }
+
+  async function copySummaryUrl() {
+    await navigator.clipboard.writeText(summaryUrl);
+    showShareMessage("Link kopyalandı.", "success");
   }
 
   function renderExpenses(trip) {
@@ -109,6 +124,8 @@
       document.title = trip.title + " · Özet | Payback";
       titleEl.textContent = trip.title;
       noteEl.textContent = trip.note || "Yolculuk harcamaları ve hesap özeti.";
+      summaryTitle = trip.title;
+      summaryUrl = window.PaybackTrips.publicUrl(trip.id);
       renderExpenses(trip);
       renderSettlement(trip);
       contentEl.hidden = false;
@@ -118,6 +135,32 @@
       statusEl.textContent = "";
     }
   }
+
+  shareButton.addEventListener("click", async function () {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: summaryTitle + " · Payback",
+          text: summaryTitle + " yolculuk özeti",
+          url: summaryUrl
+        });
+        showShareMessage("Paylaşım ekranı açıldı.", "success");
+      } else {
+        await copySummaryUrl();
+      }
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
+      showShareMessage("Link paylaşılamadı.", "error");
+    }
+  });
+
+  copyButton.addEventListener("click", async function () {
+    try {
+      await copySummaryUrl();
+    } catch {
+      showShareMessage("Link kopyalanamadı.", "error");
+    }
+  });
 
   boot();
 })();

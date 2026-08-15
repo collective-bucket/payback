@@ -11,13 +11,7 @@
   var expenseForm = document.querySelector("#expense-form");
   var payerSelect = document.querySelector("#expense-payer");
   var peopleChecks = document.querySelector("#expense-people");
-  var shareUrl = document.querySelector("#share-url");
-  var openLink = document.querySelector("#open-link");
-  var copyLink = document.querySelector("#copy-link");
   var settleBtn = document.querySelector("#settle-btn");
-  var settleResult = document.querySelector("#settle-result");
-  var statusList = document.querySelector("#status-list");
-  var paymentList = document.querySelector("#payment-list");
   var ownerActions = document.querySelector("#owner-actions");
   var deleteTripBtn = document.querySelector("#delete-trip");
   var accessPrompt = document.querySelector("#access-prompt");
@@ -29,11 +23,6 @@
   var personCancel = document.querySelector("#person-cancel");
   var expenseToggle = document.querySelector("#expense-toggle");
   var expenseCancel = document.querySelector("#expense-cancel");
-  var shareToggle = document.querySelector("#share-toggle");
-  var sharePanel = document.querySelector("#share-panel");
-  var shareClose = document.querySelector("#share-close");
-  var settlePanel = document.querySelector("#settle-panel");
-  var settleClose = document.querySelector("#settle-close");
 
   var trip = null;
   var session = null;
@@ -145,8 +134,7 @@
     document.title = trip.title + " | Payback";
     titleEl.textContent = trip.title;
     noteEl.textContent = trip.note || "Kişi ve harcama ekle, sonra hesabı çıkar.";
-    shareUrl.value = window.PaybackTrips.publicUrl(trip.id);
-    openLink.href = shareUrl.value;
+    settleBtn.href = window.PaybackTrips.publicUrl(trip.id);
     ownerActions.hidden = false;
     personToggle.hidden = !personForm.hidden;
     expenseToggle.hidden = !expenseForm.hidden;
@@ -162,46 +150,6 @@
     if (!canEdit || !session) throw new Error("Düzenleme yetkisi yok.");
     trip = await window.PaybackTrips.saveTrip(trip, session);
     renderAll();
-  }
-
-  function renderSettle() {
-    var result = window.PaybackSettle.settle(trip);
-    settleResult.hidden = false;
-
-    if (!result.status.length) {
-      statusList.innerHTML = '<p class="empty">Kişi yok.</p>';
-    } else {
-      statusList.innerHTML = result.status
-        .map(function (row) {
-          return (
-            '<div class="status-row"><span>' +
-            window.PaybackTrips.escapeHtml(row.name) +
-            '</span><span class="amount">' +
-            window.PaybackTrips.formatMoney(row.amount) +
-            "</span></div>"
-          );
-        })
-        .join("");
-    }
-
-    if (!result.payments.length) {
-      paymentList.innerHTML =
-        '<p class="empty">Ödeme gerekmiyor. Herkes denk.</p>';
-    } else {
-      paymentList.innerHTML = result.payments
-        .map(function (payment) {
-          return (
-            '<div class="payment-row"><span>' +
-            window.PaybackTrips.escapeHtml(payment.fromName) +
-            " → " +
-            window.PaybackTrips.escapeHtml(payment.toName) +
-            '</span><span class="amount">' +
-            window.PaybackTrips.formatMoney(payment.amount) +
-            "</span></div>"
-          );
-        })
-        .join("");
-    }
   }
 
   async function boot() {
@@ -324,7 +272,6 @@
       expenseForm.hidden = false;
       expenseToggle.hidden = true;
       expenseForm.querySelector("#expense-label").focus();
-      settlePanel.hidden = true;
     } catch (error) {
       showMessage(error.message, "error");
     }
@@ -365,7 +312,6 @@
     try {
       await persist();
       showMessage("Harcama silindi.", "success");
-      settlePanel.hidden = true;
     } catch (error) {
       showMessage(error.message, "error");
     }
@@ -400,34 +346,6 @@
     peopleChecks.querySelectorAll('input[name="personIds"]').forEach(function (input) {
       input.checked = true;
     });
-  });
-
-  shareToggle.addEventListener("click", function () {
-    sharePanel.hidden = false;
-    shareUrl.focus();
-  });
-
-  shareClose.addEventListener("click", function () {
-    sharePanel.hidden = true;
-  });
-
-  settleBtn.addEventListener("click", function () {
-    settlePanel.hidden = false;
-    renderSettle();
-  });
-
-  settleClose.addEventListener("click", function () {
-    settlePanel.hidden = true;
-  });
-
-  copyLink.addEventListener("click", async function () {
-    try {
-      await navigator.clipboard.writeText(shareUrl.value);
-      showMessage("Link kopyalandı.", "success");
-    } catch {
-      shareUrl.select();
-      showMessage("Linki elle kopyala.", "error");
-    }
   });
 
   deleteTripBtn.addEventListener("click", async function () {

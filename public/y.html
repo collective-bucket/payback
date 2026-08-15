@@ -45,34 +45,7 @@
           </div>
           <div class="actions" id="owner-actions" hidden>
             <button id="delete-trip" class="btn btn-ghost danger" type="button">Yolculuğu sil</button>
-            <button id="share-toggle" class="btn btn-ghost" type="button">Paylaş</button>
-            <button id="settle-btn" class="btn btn-primary" type="button">Hesabı çıkar</button>
-          </div>
-        </section>
-
-        <section id="settle-panel" class="panel panel-closable" hidden>
-          <button id="settle-close" class="box-close" type="button" aria-label="Kapat">x</button>
-          <h2>Hesabı çıkar</h2>
-          <div id="settle-result" class="settle-grid">
-            <div>
-              <h3>Durum</h3>
-              <div id="status-list"></div>
-            </div>
-            <div>
-              <h3>Dağılım</h3>
-              <div id="payment-list"></div>
-            </div>
-          </div>
-        </section>
-
-        <section id="share-panel" class="panel panel-closable" hidden>
-          <button id="share-close" class="box-close" type="button" aria-label="Kapat">x</button>
-          <h2>Paylaş</h2>
-          <p class="panel-intro">Bu link, giriş gerektirmeyen salt okunur özet sayfasına gider.</p>
-          <div class="share-row">
-            <input id="share-url" type="text" readonly />
-            <button id="copy-link" class="btn btn-ghost" type="button">Linki kopyala</button>
-            <a id="open-link" class="btn btn-ghost" href="#" target="_blank" rel="noopener">Linki aç</a>
+            <a id="settle-btn" class="btn btn-primary" href="#">Hesabı çıkar</a>
           </div>
         </section>
 
@@ -84,11 +57,11 @@
             </button>
           </div>
           <form id="person-form" class="inner-box" hidden>
-            <button id="person-cancel" class="box-close" type="button" aria-label="Kapat">x</button>
             <label for="person-name">Kişi adı</label>
             <input id="person-name" type="text" maxlength="60" placeholder="Ayşe" required />
             <div class="actions">
               <button class="btn btn-primary" type="submit">Ekle</button>
+              <button id="person-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
             </div>
           </form>
           <ul id="people-list" class="list"></ul>
@@ -102,7 +75,6 @@
             </button>
           </div>
           <form id="expense-form" class="inner-box" hidden>
-            <button id="expense-cancel" class="box-close" type="button" aria-label="Kapat">x</button>
             <label for="expense-label">Açıklama</label>
             <input id="expense-label" type="text" maxlength="120" placeholder="Benzin" required />
 
@@ -117,6 +89,7 @@
 
             <div class="actions">
               <button class="btn btn-primary" type="submit">Harcama ekle</button>
+              <button id="expense-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
             </div>
           </form>
           <ul id="expense-list" class="list"></ul>
@@ -138,7 +111,6 @@
   <script src="/assets/config.js" defer></script>
   <script src="/assets/firestore.js" defer></script>
   <script src="/assets/trips.js" defer></script>
-  <script src="/assets/settle.js" defer></script>
   <script src="/assets/nav.js" defer></script>
   <script src="/assets/trip.js" defer></script>
 </body>
