@@ -151,25 +151,40 @@
     renderAll();
   }
 
-  async function boot() {
+  var bootToken = 0;
+
+  async function boot(preferredSession) {
     var id = tripIdFromPath();
     if (!id) {
       showMessage("Yolculuk bulunamadı.", "error");
       return;
     }
 
+    var token = ++bootToken;
+
     try {
-      session = await window.PaybackTrips.getOptionalSession();
+      session = preferredSession && preferredSession.idToken
+        ? preferredSession
+        : await window.PaybackTrips.getOptionalSession();
+      if (token !== bootToken) return;
+
       if (!session || !session.idToken) {
         accessPrompt.hidden = false;
+        accessTitle.textContent = "Giriş gerekli";
+        accessText.textContent =
+          "Bu yolculuğu düzenlemek için sahibi olarak giriş yap.";
+        accessLogin.hidden = false;
         accessLogin.href =
           window.PaybackConfig.authOrigin +
           "/?returnTo=" +
           encodeURIComponent(window.location.href);
+        tripContent.hidden = true;
         return;
       }
 
       trip = await window.PaybackTrips.getTrip(id, session.idToken);
+      if (token !== bootToken) return;
+
       if (!trip) {
         showMessage("Yolculuk bulunamadı.", "error");
         return;
@@ -181,6 +196,7 @@
         accessText.textContent =
           "Bu düzenleme ekranına yalnızca yolculuk sahibi erişebilir.";
         accessLogin.hidden = true;
+        tripContent.hidden = true;
         return;
       }
 
@@ -188,9 +204,14 @@
       tripContent.hidden = false;
       renderAll();
     } catch (error) {
+      if (token !== bootToken) return;
       showMessage(error.message, "error");
     }
   }
+
+  window.addEventListener("cb-auth-changed", function (event) {
+    boot(event.detail && event.detail.session);
+  });
 
   personForm.addEventListener("submit", async function (event) {
     event.preventDefault();

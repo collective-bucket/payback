@@ -11,6 +11,7 @@
   var newTripToggle = document.querySelector("#new-trip-toggle");
   var cancelTrip = document.querySelector("#cancel-trip");
   var session = null;
+  var loadToken = 0;
 
   function setStatus(text) {
     statusEl.textContent = text || "";
@@ -21,24 +22,42 @@
     message.className = "message" + (type ? " message-" + type : "");
   }
 
-  async function load() {
-    session = await window.PaybackTrips.getOptionalSession();
-    if (!session || !session.idToken) {
-      loginPrompt.hidden = false;
-      loginLink.href =
-        window.PaybackConfig.authOrigin +
-        "/?returnTo=" +
-        encodeURIComponent(window.location.href);
-      listEl.innerHTML = "";
-      setStatus("");
+  function showLoggedOut() {
+    session = null;
+    loginPrompt.hidden = false;
+    loginLink.href =
+      window.PaybackConfig.authOrigin +
+      "/?returnTo=" +
+      encodeURIComponent(window.location.href);
+    newTripToggle.hidden = true;
+    newTripPanel.hidden = true;
+    listEl.innerHTML = "";
+    setStatus("");
+  }
+
+  async function load(preferredSession) {
+    var token = ++loadToken;
+    var nextSession = preferredSession;
+
+    if (!nextSession || !nextSession.idToken) {
+      nextSession = await window.PaybackTrips.getOptionalSession();
+    }
+    if (token !== loadToken) return;
+
+    if (!nextSession || !nextSession.idToken) {
+      showLoggedOut();
       return;
     }
 
+    session = nextSession;
     loginPrompt.hidden = true;
     newTripToggle.hidden = false;
     setStatus("Yükleniyor…");
+
     try {
       var trips = await window.PaybackTrips.listMine(session);
+      if (token !== loadToken) return;
+
       if (!trips.length) {
         listEl.innerHTML =
           '<p class="empty">Henüz yolculuk yok. Yukarıdan ilkini oluştur.</p>';
@@ -68,6 +87,7 @@
         .join("");
       setStatus(trips.length + " yolculuk");
     } catch (error) {
+      if (token !== loadToken) return;
       listEl.innerHTML =
         '<p class="empty error">' +
         window.PaybackTrips.escapeHtml(error.message) +
@@ -110,6 +130,10 @@
     newTripToggle.setAttribute("aria-expanded", "false");
     form.reset();
     showMessage("");
+  });
+
+  window.addEventListener("cb-auth-changed", function (event) {
+    load(event.detail && event.detail.session);
   });
 
   load();

@@ -24,7 +24,7 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(js|json)",
+        "source": "**",
         "headers": [
           {
             "key": "Cache-Control",
