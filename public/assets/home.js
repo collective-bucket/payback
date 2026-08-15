@@ -11,12 +11,18 @@
   var newTripToggle = document.querySelector("#new-trip-toggle");
   var cancelTrip = document.querySelector("#cancel-trip");
   var session = null;
-  var loadToken = 0;
+  var appliedUid = undefined;
+  var listRequest = 0;
   var debugMode = new URLSearchParams(window.location.search).has("debug");
   var debugEl = null;
 
   function setStatus(text) {
     statusEl.textContent = text || "";
+  }
+
+  function showMessage(text, type) {
+    message.textContent = text || "";
+    message.className = "message" + (type ? " message-" + type : "");
   }
 
   function debugLog(text) {
@@ -30,9 +36,8 @@
       new Date().toISOString().slice(11, 19) + " " + text + "\n";
   }
 
-  function showMessage(text, type) {
-    message.textContent = text || "";
-    message.className = "message" + (type ? " message-" + type : "");
+  function sessionUid(value) {
+    return value && value.idToken ? value.uid : null;
   }
 
   function showLoggedOut() {
@@ -48,47 +53,16 @@
     setStatus("");
   }
 
-  async function load(preferredSession) {
-    var token = ++loadToken;
-    var nextSession = preferredSession;
-
-    debugLog(
-      "load#" + token + " preferred=" + (preferredSession ? "var" : "yok")
-    );
-
-    if (!nextSession || !nextSession.idToken) {
-      try {
-        nextSession = await window.PaybackTrips.getOptionalSession();
-      } catch (error) {
-        debugLog("getSession hatası: " + error.message);
-        nextSession = null;
-      }
-    }
-    if (token !== loadToken) {
-      debugLog("load#" + token + " iptal (yenisi var)");
-      return;
-    }
-
-    debugLog(
-      "oturum=" +
-        (nextSession && nextSession.idToken
-          ? "var " + (nextSession.email || "e-posta yok") + " uid=" + nextSession.uid
-          : "yok")
-    );
-
-    if (!nextSession || !nextSession.idToken) {
-      showLoggedOut();
-      return;
-    }
-
-    session = nextSession;
+  async function renderTrips(activeSession) {
+    var requestId = ++listRequest;
+    session = activeSession;
     loginPrompt.hidden = true;
     newTripToggle.hidden = false;
     setStatus("Yükleniyor…");
 
     try {
-      var trips = await window.PaybackTrips.listMine(session);
-      if (token !== loadToken) return;
+      var trips = await window.PaybackTrips.listMine(activeSession);
+      if (requestId !== listRequest) return;
 
       debugLog("sorgu ok, kayıt=" + trips.length);
 
@@ -121,7 +95,7 @@
         .join("");
       setStatus(trips.length + " yolculuk");
     } catch (error) {
-      if (token !== loadToken) return;
+      if (requestId !== listRequest) return;
       debugLog("sorgu hatası: " + error.message);
       listEl.innerHTML =
         '<p class="empty error">' +
@@ -131,12 +105,41 @@
     }
   }
 
+  function applySession(nextSession) {
+    var uid = sessionUid(nextSession);
+    if (uid === appliedUid) {
+      debugLog("aynı oturum, atlandı uid=" + (uid || "yok"));
+      return;
+    }
+
+    appliedUid = uid;
+    debugLog(
+      "uygula uid=" +
+        (uid || "yok") +
+        (nextSession && nextSession.email ? " " + nextSession.email : "")
+    );
+
+    if (!uid) {
+      showLoggedOut();
+      return;
+    }
+
+    renderTrips(nextSession);
+  }
+
+  async function resolveSession() {
+    var client = await window.PaybackTrips.waitForAuth();
+    var current = client.getCurrentSession && client.getCurrentSession();
+    if (sessionUid(current)) return current;
+    return window.PaybackTrips.getOptionalSession();
+  }
+
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
     showMessage("Oluşturuluyor…");
     try {
-      session = await window.PaybackTrips.getOptionalSession();
-      if (!session || !session.idToken) {
+      session = await resolveSession();
+      if (!sessionUid(session)) {
         throw new Error("Yolculuk oluşturmak için giriş yap.");
       }
       var trip = await window.PaybackTrips.createTrip(
@@ -168,10 +171,18 @@
   });
 
   window.addEventListener("cb-auth-changed", function (event) {
-    debugLog("cb-auth-changed geldi");
-    load(event.detail && event.detail.session);
+    debugLog("cb-auth-changed");
+    applySession(event.detail && event.detail.session);
   });
 
   debugLog("ua=" + navigator.userAgent);
-  load();
+
+  resolveSession()
+    .then(function (resolved) {
+      if (appliedUid === undefined) applySession(resolved);
+    })
+    .catch(function (error) {
+      debugLog("resolve hatası: " + error.message);
+      if (appliedUid === undefined) applySession(null);
+    });
 })();

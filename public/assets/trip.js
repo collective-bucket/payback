@@ -151,7 +151,12 @@
     renderAll();
   }
 
+  var appliedUid = undefined;
   var bootToken = 0;
+
+  function sessionUid(value) {
+    return value && value.idToken ? value.uid : null;
+  }
 
   async function boot(preferredSession) {
     var id = tripIdFromPath();
@@ -160,15 +165,24 @@
       return;
     }
 
+    var nextSession =
+      preferredSession && preferredSession.idToken
+        ? preferredSession
+        : null;
+
+    if (!nextSession) {
+      nextSession = await window.PaybackTrips.getOptionalSession();
+    }
+
+    var uid = sessionUid(nextSession);
+    if (uid === appliedUid && tripContent && !tripContent.hidden) return;
+    appliedUid = uid;
+
     var token = ++bootToken;
 
     try {
-      session = preferredSession && preferredSession.idToken
-        ? preferredSession
-        : await window.PaybackTrips.getOptionalSession();
-      if (token !== bootToken) return;
-
-      if (!session || !session.idToken) {
+      session = nextSession;
+      if (!sessionUid(session)) {
         accessPrompt.hidden = false;
         accessTitle.textContent = "Giriş gerekli";
         accessText.textContent =
@@ -210,7 +224,9 @@
   }
 
   window.addEventListener("cb-auth-changed", function (event) {
-    boot(event.detail && event.detail.session);
+    var next = event.detail && event.detail.session;
+    if (sessionUid(next) === appliedUid) return;
+    boot(next);
   });
 
   personForm.addEventListener("submit", async function (event) {

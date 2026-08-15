@@ -59,7 +59,9 @@
   async function getOptionalSession() {
     try {
       var client = await waitForAuth();
-      return await client.getSession({ forceRefresh: true });
+      var current = client.getCurrentSession && client.getCurrentSession();
+      if (current && current.idToken) return current;
+      return await client.getSession({ forceRefresh: false });
     } catch {
       return null;
     }
