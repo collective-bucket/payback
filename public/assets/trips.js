@@ -25,13 +25,8 @@
   }
 
   function formatMoney(amount) {
-    var value = Number(amount) || 0;
-    return (
-      value.toLocaleString("tr-TR", {
-        minimumFractionDigits: value % 1 ? 2 : 0,
-        maximumFractionDigits: 2
-      }) + " ₺"
-    );
+    var value = Math.round(Number(amount) || 0);
+    return value.toLocaleString("tr-TR") + " ₺";
   }
 
   async function waitForAuth() {

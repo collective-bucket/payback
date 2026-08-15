@@ -64,19 +64,17 @@
           .map(function (row) {
             var cls =
               row.amount > 0 ? "positive" : row.amount < 0 ? "negative" : "neutral";
-            var label =
-              row.amount > 0
-                ? "alacaklı " + window.PaybackTrips.formatMoney(row.amount)
-                : row.amount < 0
-                  ? "borçlu " + window.PaybackTrips.formatMoney(-row.amount)
-                  : "denk";
+            var amount =
+              row.amount < 0
+                ? window.PaybackTrips.formatMoney(-row.amount)
+                : window.PaybackTrips.formatMoney(row.amount);
             return (
               '<div class="status-row"><span>' +
               window.PaybackTrips.escapeHtml(row.name) +
-              '</span><span class="' +
+              '</span><span class="amount ' +
               cls +
               '">' +
-              label +
+              amount +
               "</span></div>"
             );
           })
@@ -91,9 +89,9 @@
               window.PaybackTrips.escapeHtml(payment.fromName) +
               " → " +
               window.PaybackTrips.escapeHtml(payment.toName) +
-              "</span><strong>" +
+              '</span><span class="amount">' +
               window.PaybackTrips.formatMoney(payment.amount) +
-              "</strong></div>"
+              "</span></div>"
             );
           })
           .join("")

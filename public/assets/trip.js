@@ -146,8 +146,8 @@
     noteEl.textContent = trip.note || "Kişi ve harcama ekle, sonra hesabı çıkar.";
     shareUrl.value = window.PaybackTrips.publicUrl(trip.id);
     ownerActions.hidden = false;
-    personToggle.hidden = false;
-    expenseToggle.hidden = false;
+    personToggle.hidden = !personForm.hidden;
+    expenseToggle.hidden = !expenseForm.hidden;
   }
 
   function renderAll() {
@@ -173,19 +173,17 @@
         .map(function (row) {
           var cls =
             row.amount > 0 ? "positive" : row.amount < 0 ? "negative" : "neutral";
-          var label =
-            row.amount > 0
-              ? "alacaklı " + window.PaybackTrips.formatMoney(row.amount)
-              : row.amount < 0
-                ? "borçlu " + window.PaybackTrips.formatMoney(-row.amount)
-                : "denk";
+          var amount =
+            row.amount < 0
+              ? window.PaybackTrips.formatMoney(-row.amount)
+              : window.PaybackTrips.formatMoney(row.amount);
           return (
             '<div class="status-row"><span>' +
             window.PaybackTrips.escapeHtml(row.name) +
-            '</span><span class="' +
+            '</span><span class="amount ' +
             cls +
             '">' +
-            label +
+            amount +
             "</span></div>"
           );
         })
@@ -203,9 +201,9 @@
             window.PaybackTrips.escapeHtml(payment.fromName) +
             " → " +
             window.PaybackTrips.escapeHtml(payment.toName) +
-            '</span><strong>' +
+            '</span><span class="amount">' +
             window.PaybackTrips.formatMoney(payment.amount) +
-            "</strong></div>"
+            "</span></div>"
           );
         })
         .join("");
@@ -275,8 +273,9 @@
     try {
       await persist();
       personForm.reset();
-      personForm.hidden = true;
-      personToggle.hidden = false;
+      personForm.hidden = false;
+      personToggle.hidden = true;
+      personForm.querySelector("#person-name").focus();
       showMessage("Kişi eklendi.", "success");
     } catch (error) {
       showMessage(error.message, "error");
@@ -328,8 +327,9 @@
         input.checked = true;
       });
       showMessage("Harcama eklendi.", "success");
-      expenseForm.hidden = true;
-      expenseToggle.hidden = false;
+      expenseForm.hidden = false;
+      expenseToggle.hidden = true;
+      expenseForm.querySelector("#expense-label").focus();
       settlePanel.hidden = true;
     } catch (error) {
       showMessage(error.message, "error");

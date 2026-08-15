@@ -39,93 +39,93 @@
 
       <div id="trip-content" hidden>
         <section class="hero">
-        <div>
-          <h1 id="trip-title">Yolculuk</h1>
-          <p id="trip-note"></p>
-        </div>
-        <div class="actions" id="owner-actions" hidden>
-          <button id="share-toggle" class="btn btn-ghost" type="button">Paylaş</button>
-          <button id="settle-btn" class="btn btn-primary" type="button">Hesabı çıkar</button>
-          <button id="delete-trip" class="btn btn-ghost danger" type="button">Yolculuğu sil</button>
-        </div>
+          <div>
+            <h1 id="trip-title">Yolculuk</h1>
+            <p id="trip-note"></p>
+          </div>
+          <div class="actions" id="owner-actions" hidden>
+            <button id="delete-trip" class="btn btn-ghost danger" type="button">Yolculuğu sil</button>
+            <button id="share-toggle" class="btn btn-ghost" type="button">Paylaş</button>
+            <button id="settle-btn" class="btn btn-primary" type="button">Hesabı çıkar</button>
+          </div>
         </section>
 
-      <section id="share-panel" class="panel" hidden>
-        <div class="panel-head">
-          <h2>Paylaş</h2>
-          <button id="share-close" class="btn btn-ghost" type="button">Kapat</button>
-        </div>
-        <p class="panel-intro">Bu link, giriş gerektirmeyen salt okunur özet sayfasına gider.</p>
-        <div class="share-row">
-          <input id="share-url" type="text" readonly />
-          <button id="copy-link" class="btn btn-ghost" type="button">Linki kopyala</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Kişiler</h2>
-          <button id="person-toggle" class="btn btn-primary" type="button" hidden>
-            Kişi ekle
-          </button>
-        </div>
-        <ul id="people-list" class="list"></ul>
-        <form id="person-form" hidden>
-          <label for="person-name">Kişi ekle</label>
-          <input id="person-name" type="text" maxlength="60" placeholder="Ayşe" required />
-          <div class="actions">
-            <button class="btn btn-primary" type="submit">Ekle</button>
-            <button id="person-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
+        <section id="settle-panel" class="panel" hidden>
+          <div class="panel-head">
+            <h2>Hesabı çıkar</h2>
+            <button id="settle-close" class="btn btn-ghost btn-icon" type="button" aria-label="Kapat">x</button>
           </div>
-        </form>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Harcamalar</h2>
-          <button id="expense-toggle" class="btn btn-primary" type="button" hidden>
-            Harcama ekle
-          </button>
-        </div>
-        <ul id="expense-list" class="list"></ul>
-        <form id="expense-form" hidden>
-          <label for="expense-label">Açıklama</label>
-          <input id="expense-label" type="text" maxlength="120" placeholder="Benzin" required />
-
-          <label for="expense-amount">Tutar (₺)</label>
-          <input id="expense-amount" type="number" min="0.01" step="0.01" required />
-
-          <label for="expense-payer">Ödeyen</label>
-          <select id="expense-payer" required></select>
-
-          <label>Dahil kişiler</label>
-          <div id="expense-people" class="person-checks"></div>
-
-          <div class="actions">
-            <button class="btn btn-primary" type="submit">Harcama ekle</button>
-            <button id="expense-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
+          <div id="settle-result" class="settle-grid">
+            <div>
+              <h3>Durum</h3>
+              <div id="status-list"></div>
+            </div>
+            <div>
+              <h3>Kim kime ne verir</h3>
+              <div id="payment-list"></div>
+            </div>
           </div>
-        </form>
-      </section>
+        </section>
 
-      <section id="settle-panel" class="panel" hidden>
-        <div class="panel-head">
-          <h2>Hesabı çıkar</h2>
-          <button id="settle-close" class="btn btn-ghost" type="button">Kapat</button>
-        </div>
-        <div id="settle-result" class="settle-grid">
-          <div>
-            <h3>Durum</h3>
-            <div id="status-list"></div>
+        <section id="share-panel" class="panel" hidden>
+          <div class="panel-head">
+            <h2>Paylaş</h2>
+            <button id="share-close" class="btn btn-ghost btn-icon" type="button" aria-label="Kapat">x</button>
           </div>
-          <div>
-            <h3>Kim kime ne verir</h3>
-            <div id="payment-list"></div>
+          <p class="panel-intro">Bu link, giriş gerektirmeyen salt okunur özet sayfasına gider.</p>
+          <div class="share-row">
+            <input id="share-url" type="text" readonly />
+            <button id="copy-link" class="btn btn-ghost" type="button">Linki kopyala</button>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <p id="trip-message" class="message" role="status"></p>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Kişiler</h2>
+            <button id="person-toggle" class="btn btn-primary btn-icon" type="button" hidden aria-label="Kişi ekle">
+              +
+            </button>
+          </div>
+          <form id="person-form" hidden>
+            <label for="person-name">Kişi ekle</label>
+            <input id="person-name" type="text" maxlength="60" placeholder="Ayşe" required />
+            <div class="actions">
+              <button class="btn btn-primary" type="submit">Ekle</button>
+              <button id="person-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç">x</button>
+            </div>
+          </form>
+          <ul id="people-list" class="list"></ul>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Harcamalar</h2>
+            <button id="expense-toggle" class="btn btn-primary btn-icon" type="button" hidden aria-label="Harcama ekle">
+              +
+            </button>
+          </div>
+          <form id="expense-form" hidden>
+            <label for="expense-label">Açıklama</label>
+            <input id="expense-label" type="text" maxlength="120" placeholder="Benzin" required />
+
+            <label for="expense-amount">Tutar (₺)</label>
+            <input id="expense-amount" type="number" min="0.01" step="0.01" required />
+
+            <label for="expense-payer">Ödeyen</label>
+            <select id="expense-payer" required></select>
+
+            <label>Dahil kişiler</label>
+            <div id="expense-people" class="person-checks"></div>
+
+            <div class="actions">
+              <button class="btn btn-primary" type="submit">Harcama ekle</button>
+              <button id="expense-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç">x</button>
+            </div>
+          </form>
+          <ul id="expense-list" class="list"></ul>
+        </section>
+
+        <p id="trip-message" class="message" role="status"></p>
       </div>
     </div>
   </main>
