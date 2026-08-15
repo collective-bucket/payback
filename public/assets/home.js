@@ -12,9 +12,22 @@
   var cancelTrip = document.querySelector("#cancel-trip");
   var session = null;
   var loadToken = 0;
+  var debugMode = new URLSearchParams(window.location.search).has("debug");
+  var debugEl = null;
 
   function setStatus(text) {
     statusEl.textContent = text || "";
+  }
+
+  function debugLog(text) {
+    if (!debugMode) return;
+    if (!debugEl) {
+      debugEl = document.createElement("pre");
+      debugEl.className = "debug-log";
+      listEl.parentNode.insertBefore(debugEl, listEl);
+    }
+    debugEl.textContent +=
+      new Date().toISOString().slice(11, 19) + " " + text + "\n";
   }
 
   function showMessage(text, type) {
@@ -39,10 +52,29 @@
     var token = ++loadToken;
     var nextSession = preferredSession;
 
+    debugLog(
+      "load#" + token + " preferred=" + (preferredSession ? "var" : "yok")
+    );
+
     if (!nextSession || !nextSession.idToken) {
-      nextSession = await window.PaybackTrips.getOptionalSession();
+      try {
+        nextSession = await window.PaybackTrips.getOptionalSession();
+      } catch (error) {
+        debugLog("getSession hatası: " + error.message);
+        nextSession = null;
+      }
     }
-    if (token !== loadToken) return;
+    if (token !== loadToken) {
+      debugLog("load#" + token + " iptal (yenisi var)");
+      return;
+    }
+
+    debugLog(
+      "oturum=" +
+        (nextSession && nextSession.idToken
+          ? "var uid=" + nextSession.uid
+          : "yok")
+    );
 
     if (!nextSession || !nextSession.idToken) {
       showLoggedOut();
@@ -57,6 +89,8 @@
     try {
       var trips = await window.PaybackTrips.listMine(session);
       if (token !== loadToken) return;
+
+      debugLog("sorgu ok, kayıt=" + trips.length);
 
       if (!trips.length) {
         listEl.innerHTML =
@@ -88,6 +122,7 @@
       setStatus(trips.length + " yolculuk");
     } catch (error) {
       if (token !== loadToken) return;
+      debugLog("sorgu hatası: " + error.message);
       listEl.innerHTML =
         '<p class="empty error">' +
         window.PaybackTrips.escapeHtml(error.message) +
@@ -133,8 +168,10 @@
   });
 
   window.addEventListener("cb-auth-changed", function (event) {
+    debugLog("cb-auth-changed geldi");
     load(event.detail && event.detail.session);
   });
 
+  debugLog("ua=" + navigator.userAgent);
   load();
 })();

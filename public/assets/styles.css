@@ -190,6 +190,19 @@ main { flex: 1; padding: 40px 0 56px; }
   margin-bottom: 18px;
 }
 
+.debug-log {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .panel-head {
   display: flex;
   align-items: center;
