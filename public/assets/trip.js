@@ -173,19 +173,11 @@
     } else {
       statusList.innerHTML = result.status
         .map(function (row) {
-          var cls =
-            row.amount > 0 ? "positive" : row.amount < 0 ? "negative" : "neutral";
-          var amount =
-            row.amount < 0
-              ? window.PaybackTrips.formatMoney(-row.amount)
-              : window.PaybackTrips.formatMoney(row.amount);
           return (
             '<div class="status-row"><span>' +
             window.PaybackTrips.escapeHtml(row.name) +
-            '</span><span class="amount ' +
-            cls +
-            '">' +
-            amount +
+            '</span><span class="amount">' +
+            window.PaybackTrips.formatMoney(row.amount) +
             "</span></div>"
           );
         })

@@ -48,6 +48,28 @@
     });
   }
 
+  function spending(people, expenses) {
+    var map = {};
+    (people || []).forEach(function (person) {
+      map[person.id] = { id: person.id, name: person.name, cents: 0 };
+    });
+
+    (expenses || []).forEach(function (expense) {
+      if (!map[expense.payerId]) return;
+      var total = toCents(expense.amount);
+      if (total > 0) map[expense.payerId].cents += total;
+    });
+
+    return Object.keys(map).map(function (id) {
+      return {
+        id: map[id].id,
+        name: map[id].name,
+        amount: fromCents(map[id].cents),
+        cents: map[id].cents
+      };
+    });
+  }
+
   function payments(people, expenses) {
     var status = balances(people, expenses)
       .map(function (row) {
@@ -111,7 +133,7 @@
     var people = (trip && trip.people) || [];
     var expenses = (trip && trip.expenses) || [];
     return {
-      status: balances(people, expenses),
+      status: spending(people, expenses),
       payments: payments(people, expenses)
     };
   }
@@ -120,6 +142,7 @@
     toCents: toCents,
     fromCents: fromCents,
     balances: balances,
+    spending: spending,
     payments: payments,
     settle: settle
   };
