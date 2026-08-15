@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yolculuk | Payback</title>
+  <meta name="description" content="Yolculuk harcamaları ve hesap özeti." />
+  <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/">
+        <img src="/assets/logo.svg" alt="" />
+        <span>Payback</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="/">Yolculuklarım</a>
+        <div class="cb-auth-controls" data-cb-auth></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <p class="meta" id="trip-status"></p>
+      <div id="readonly-banner" class="readonly-banner" hidden>
+        Bu yolculuğu görüntülüyorsun. Düzenlemek için sahibi olarak giriş yap.
+      </div>
+
+      <section class="hero">
+        <div>
+          <h1 id="trip-title">Yolculuk</h1>
+          <p id="trip-note"></p>
+        </div>
+        <div class="actions" id="owner-actions" hidden>
+          <button id="delete-trip" class="btn btn-ghost danger" type="button">Yolculuğu sil</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Paylaş</h2>
+        </div>
+        <div class="share-row">
+          <input id="share-url" type="text" readonly />
+          <button id="copy-link" class="btn btn-ghost" type="button">Linki kopyala</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Kişiler</h2>
+        </div>
+        <ul id="people-list" class="list"></ul>
+        <form id="person-form" hidden>
+          <label for="person-name">Kişi ekle</label>
+          <input id="person-name" type="text" maxlength="60" placeholder="Ayşe" required />
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Ekle</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Harcamalar</h2>
+        </div>
+        <ul id="expense-list" class="list"></ul>
+        <form id="expense-form" hidden>
+          <label for="expense-label">Açıklama</label>
+          <input id="expense-label" type="text" maxlength="120" placeholder="Benzin" required />
+
+          <label for="expense-amount">Tutar (₺)</label>
+          <input id="expense-amount" type="number" min="0.01" step="0.01" required />
+
+          <label for="expense-payer">Ödeyen</label>
+          <select id="expense-payer" required></select>
+
+          <label>Dahil kişiler</label>
+          <div id="expense-people" class="person-checks"></div>
+
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Harcama ekle</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Hesabı çıkar</h2>
+          <button id="settle-btn" class="btn btn-primary" type="button">Hesabı çıkar</button>
+        </div>
+        <div id="settle-result" class="settle-grid" hidden>
+          <div>
+            <h3>Durum</h3>
+            <div id="status-list"></div>
+          </div>
+          <div>
+            <h3>Kim kime ne verir</h3>
+            <div id="payment-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <p id="trip-message" class="message" role="status"></p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Collective Bucket · Payback</span>
+      <a href="/">Yolculuklarım</a>
+    </div>
+  </footer>
+
+  <script src="https://auth.collectivebucket.com/client.js" defer></script>
+  <script src="/assets/config.js" defer></script>
+  <script src="/assets/firestore.js" defer></script>
+  <script src="/assets/trips.js" defer></script>
+  <script src="/assets/settle.js" defer></script>
+  <script src="/assets/nav.js" defer></script>
+  <script src="/assets/trip.js" defer></script>
+</body>
+</html>

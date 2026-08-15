@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /ads/{adId} {
+      function validAd() {
+        return request.resource.data.keys().hasAll([
+            'ownerUid', 'title', 'body', 'links', 'noteColor',
+            'published', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.title.size() <= 120
+          && request.resource.data.body is string
+          && request.resource.data.body.size() <= 2000
+          && request.resource.data.noteColor in [
+            'yellow', 'mint', 'pink', 'blue', 'lilac'
+          ]
+          && request.resource.data.published is bool
+          && request.resource.data.links is list
+          && request.resource.data.links.size() <= 10;
+      }
+
+      allow read: if resource.data.published == true
+        || (request.auth != null && request.auth.uid == resource.data.ownerUid);
+
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && validAd();
+
+      allow update: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && validAd();
+
+      allow delete: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /trips/{tripId} {
+      function isTripOwner() {
+        return request.auth != null
+          && request.auth.uid == resource.data.ownerUid;
+      }
+
+      function validTrip() {
+        return request.resource.data.keys().hasAll([
+            'ownerUid', 'title', 'note', 'people', 'expenses',
+            'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.ownerUid is string
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.title.size() <= 120
+          && request.resource.data.note is string
+          && request.resource.data.note.size() <= 500
+          && request.resource.data.people is list
+          && request.resource.data.people.size() <= 30
+          && request.resource.data.expenses is list
+          && request.resource.data.expenses.size() <= 200
+          && request.resource.data.createdAt is string
+          && request.resource.data.updatedAt is string;
+      }
+
+      allow get: if true;
+
+      allow list: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && validTrip();
+
+      allow update: if isTripOwner()
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && validTrip();
+
+      allow delete: if isTripOwner();
+    }
+  }
+}
