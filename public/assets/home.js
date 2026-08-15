@@ -72,7 +72,7 @@
     debugLog(
       "oturum=" +
         (nextSession && nextSession.idToken
-          ? "var uid=" + nextSession.uid
+          ? "var " + (nextSession.email || "e-posta yok") + " uid=" + nextSession.uid
           : "yok")
     );
 
