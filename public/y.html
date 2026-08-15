@@ -50,11 +50,9 @@
           </div>
         </section>
 
-        <section id="settle-panel" class="panel" hidden>
-          <div class="panel-head">
-            <h2>Hesabı çıkar</h2>
-            <button id="settle-close" class="btn btn-ghost btn-icon" type="button" aria-label="Kapat">x</button>
-          </div>
+        <section id="settle-panel" class="panel panel-closable" hidden>
+          <button id="settle-close" class="box-close" type="button" aria-label="Kapat">x</button>
+          <h2>Hesabı çıkar</h2>
           <div id="settle-result" class="settle-grid">
             <div>
               <h3>Durum</h3>
@@ -67,31 +65,30 @@
           </div>
         </section>
 
-        <section id="share-panel" class="panel" hidden>
-          <div class="panel-head">
-            <h2>Paylaş</h2>
-            <button id="share-close" class="btn btn-ghost btn-icon" type="button" aria-label="Kapat">x</button>
-          </div>
+        <section id="share-panel" class="panel panel-closable" hidden>
+          <button id="share-close" class="box-close" type="button" aria-label="Kapat">x</button>
+          <h2>Paylaş</h2>
           <p class="panel-intro">Bu link, giriş gerektirmeyen salt okunur özet sayfasına gider.</p>
           <div class="share-row">
             <input id="share-url" type="text" readonly />
             <button id="copy-link" class="btn btn-ghost" type="button">Linki kopyala</button>
+            <a id="open-link" class="btn btn-ghost" href="#" target="_blank" rel="noopener">Linki aç</a>
           </div>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <h2>Kişiler</h2>
-            <button id="person-toggle" class="btn btn-primary btn-icon" type="button" hidden aria-label="Kişi ekle">
-              +
+            <button id="person-toggle" class="btn btn-primary" type="button" hidden>
+              Ekle
             </button>
           </div>
-          <form id="person-form" hidden>
-            <label for="person-name">Kişi ekle</label>
+          <form id="person-form" class="inner-box" hidden>
+            <button id="person-cancel" class="box-close" type="button" aria-label="Kapat">x</button>
+            <label for="person-name">Kişi adı</label>
             <input id="person-name" type="text" maxlength="60" placeholder="Ayşe" required />
             <div class="actions">
               <button class="btn btn-primary" type="submit">Ekle</button>
-              <button id="person-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç">x</button>
             </div>
           </form>
           <ul id="people-list" class="list"></ul>
@@ -100,11 +97,12 @@
         <section class="panel">
           <div class="panel-head">
             <h2>Harcamalar</h2>
-            <button id="expense-toggle" class="btn btn-primary btn-icon" type="button" hidden aria-label="Harcama ekle">
-              +
+            <button id="expense-toggle" class="btn btn-primary" type="button" hidden>
+              Ekle
             </button>
           </div>
-          <form id="expense-form" hidden>
+          <form id="expense-form" class="inner-box" hidden>
+            <button id="expense-cancel" class="box-close" type="button" aria-label="Kapat">x</button>
             <label for="expense-label">Açıklama</label>
             <input id="expense-label" type="text" maxlength="120" placeholder="Benzin" required />
 
@@ -119,7 +117,6 @@
 
             <div class="actions">
               <button class="btn btn-primary" type="submit">Harcama ekle</button>
-              <button id="expense-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç">x</button>
             </div>
           </form>
           <ul id="expense-list" class="list"></ul>

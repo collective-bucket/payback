@@ -196,6 +196,50 @@ main { flex: 1; padding: 40px 0 56px; }
 
 .panel-head h2 { margin: 0; }
 
+.panel-closable {
+  position: relative;
+  padding-top: 28px;
+}
+
+.panel-closable > h2 {
+  margin: 0 0 14px;
+  padding-right: 36px;
+}
+
+.inner-box {
+  position: relative;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  padding: 20px 18px 16px;
+}
+
+.inner-box > label:first-of-type {
+  margin-top: 0;
+}
+
+.box-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: 500 18px/1 var(--font);
+  cursor: pointer;
+}
+
+.box-close:hover {
+  background: rgba(25, 28, 26, 0.06);
+  color: var(--text);
+}
+
 label {
   display: block;
   margin: 12px 0 6px;
@@ -335,18 +379,14 @@ textarea { min-height: 88px; resize: vertical; }
 .status-row:last-child,
 .payment-row:last-child { border-bottom: 0; }
 
-.amount { font-weight: 500; }
+.status-row .amount,
+.payment-row .amount {
+  font-weight: 500;
+}
+
 .positive { color: var(--accent-strong); }
 .negative { color: var(--danger); }
 .neutral { color: var(--muted); }
-
-.btn-icon {
-  min-width: 40px;
-  padding-left: 12px;
-  padding-right: 12px;
-  font-size: 18px;
-  line-height: 1;
-}
 
 .empty { color: var(--muted); }
 .empty.error, .message-error { color: var(--danger); }

@@ -12,6 +12,7 @@
   var payerSelect = document.querySelector("#expense-payer");
   var peopleChecks = document.querySelector("#expense-people");
   var shareUrl = document.querySelector("#share-url");
+  var openLink = document.querySelector("#open-link");
   var copyLink = document.querySelector("#copy-link");
   var settleBtn = document.querySelector("#settle-btn");
   var settleResult = document.querySelector("#settle-result");
@@ -145,6 +146,7 @@
     titleEl.textContent = trip.title;
     noteEl.textContent = trip.note || "Kişi ve harcama ekle, sonra hesabı çıkar.";
     shareUrl.value = window.PaybackTrips.publicUrl(trip.id);
+    openLink.href = shareUrl.value;
     ownerActions.hidden = false;
     personToggle.hidden = !personForm.hidden;
     expenseToggle.hidden = !expenseForm.hidden;
