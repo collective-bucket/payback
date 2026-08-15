@@ -91,7 +91,7 @@
         return { id: row.id, name: row.name, cents: -row.cents };
       })
       .sort(function (a, b) {
-        return b.cents - a.cents;
+        return a.cents - b.cents;
       });
 
     var creditors = status
@@ -100,30 +100,34 @@
       })
       .map(function (row) {
         return { id: row.id, name: row.name, cents: row.cents };
-      })
-      .sort(function (a, b) {
-        return b.cents - a.cents;
       });
 
     var result = [];
     var i = 0;
-    var j = 0;
 
-    while (i < debtors.length && j < creditors.length) {
-      var pay = Math.min(debtors[i].cents, creditors[j].cents);
+    while (i < debtors.length) {
+      // En küçük borçluyu, o an en çok alacağı olan kişiyle eşle.
+      var target = null;
+      creditors.forEach(function (creditor) {
+        if (creditor.cents > 0 && (!target || creditor.cents > target.cents)) {
+          target = creditor;
+        }
+      });
+      if (!target) break;
+
+      var pay = Math.min(debtors[i].cents, target.cents);
       if (pay > 0) {
         result.push({
           fromId: debtors[i].id,
           fromName: debtors[i].name,
-          toId: creditors[j].id,
-          toName: creditors[j].name,
+          toId: target.id,
+          toName: target.name,
           amount: fromCents(pay)
         });
       }
       debtors[i].cents -= pay;
-      creditors[j].cents -= pay;
+      target.cents -= pay;
       if (debtors[i].cents === 0) i += 1;
-      if (creditors[j].cents === 0) j += 1;
     }
 
     return result;
