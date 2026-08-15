@@ -22,7 +22,6 @@
         <span></span><span></span><span></span>
       </button>
       <div class="nav-cta">
-        <a class="btn btn-ghost" href="/">Payback’e git</a>
         <div class="cb-auth-controls" data-cb-auth></div>
       </div>
     </div>
@@ -30,11 +29,14 @@
 
   <main>
     <div class="wrap">
-      <p class="meta" id="summary-status"></p>
       <section class="hero">
         <div>
           <h1 id="summary-title">Yolculuk özeti</h1>
           <p id="summary-note"></p>
+        </div>
+        <div class="actions" id="summary-actions" hidden>
+          <button id="share-summary" class="btn btn-primary" type="button">Linki paylaş</button>
+          <button id="copy-summary-link" class="btn btn-ghost" type="button">Linki kopyala</button>
         </div>
       </section>
 
@@ -52,15 +54,6 @@
         <section class="panel">
           <h2>Ödemeler</h2>
           <div id="summary-payments"></div>
-        </section>
-
-        <section class="panel">
-          <h2>Özeti paylaş</h2>
-          <div class="actions">
-            <button id="share-summary" class="btn btn-primary" type="button">Linki paylaş</button>
-            <button id="copy-summary-link" class="btn btn-ghost" type="button">Linki kopyala</button>
-          </div>
-          <p id="share-message" class="message" role="status"></p>
         </section>
       </div>
 

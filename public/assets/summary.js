@@ -1,17 +1,16 @@
 (function () {
   "use strict";
 
-  var statusEl = document.querySelector("#summary-status");
   var titleEl = document.querySelector("#summary-title");
   var noteEl = document.querySelector("#summary-note");
   var contentEl = document.querySelector("#summary-content");
+  var actionsEl = document.querySelector("#summary-actions");
   var expensesEl = document.querySelector("#summary-expenses");
   var balancesEl = document.querySelector("#summary-balances");
   var paymentsEl = document.querySelector("#summary-payments");
   var messageEl = document.querySelector("#summary-message");
   var shareButton = document.querySelector("#share-summary");
   var copyButton = document.querySelector("#copy-summary-link");
-  var shareMessageEl = document.querySelector("#share-message");
   var summaryUrl = "";
   var summaryTitle = "";
 
@@ -26,14 +25,9 @@
     messageEl.className = "message" + (type ? " message-" + type : "");
   }
 
-  function showShareMessage(text, type) {
-    shareMessageEl.textContent = text || "";
-    shareMessageEl.className = "message" + (type ? " message-" + type : "");
-  }
-
   async function copySummaryUrl() {
     await navigator.clipboard.writeText(summaryUrl);
-    showShareMessage("Link kopyalandı.", "success");
+    showMessage("Link kopyalandı.", "success");
   }
 
   function renderExpenses(trip) {
@@ -112,12 +106,10 @@
       return;
     }
 
-    statusEl.textContent = "Yükleniyor…";
     try {
       var trip = await window.PaybackTrips.getTrip(id);
       if (!trip) {
         showMessage("Yolculuk bulunamadı.", "error");
-        statusEl.textContent = "";
         return;
       }
 
@@ -129,10 +121,9 @@
       renderExpenses(trip);
       renderSettlement(trip);
       contentEl.hidden = false;
-      statusEl.textContent = "Paylaşılan özet";
+      actionsEl.hidden = false;
     } catch (error) {
       showMessage(error.message, "error");
-      statusEl.textContent = "";
     }
   }
 
@@ -144,13 +135,13 @@
           text: summaryTitle + " yolculuk özeti",
           url: summaryUrl
         });
-        showShareMessage("Paylaşım ekranı açıldı.", "success");
+        showMessage("Paylaşım ekranı açıldı.", "success");
       } else {
         await copySummaryUrl();
       }
     } catch (error) {
       if (error && error.name === "AbortError") return;
-      showShareMessage("Link paylaşılamadı.", "error");
+      showMessage("Link paylaşılamadı.", "error");
     }
   });
 
@@ -158,7 +149,7 @@
     try {
       await copySummaryUrl();
     } catch {
-      showShareMessage("Link kopyalanamadı.", "error");
+      showMessage("Link kopyalanamadı.", "error");
     }
   });
 

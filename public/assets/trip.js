@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  var statusEl = document.querySelector("#trip-status");
   var messageEl = document.querySelector("#trip-message");
   var titleEl = document.querySelector("#trip-title");
   var noteEl = document.querySelector("#trip-note");
@@ -155,12 +154,10 @@
   async function boot() {
     var id = tripIdFromPath();
     if (!id) {
-      statusEl.textContent = "";
       showMessage("Yolculuk bulunamadı.", "error");
       return;
     }
 
-    statusEl.textContent = "Yükleniyor…";
     try {
       session = await window.PaybackTrips.getOptionalSession();
       if (!session || !session.idToken) {
@@ -169,14 +166,12 @@
           window.PaybackConfig.authOrigin +
           "/?returnTo=" +
           encodeURIComponent(window.location.href);
-        statusEl.textContent = "";
         return;
       }
 
       trip = await window.PaybackTrips.getTrip(id, session.idToken);
       if (!trip) {
         showMessage("Yolculuk bulunamadı.", "error");
-        statusEl.textContent = "";
         return;
       }
       canEdit = Boolean(session && session.uid === trip.ownerUid);
@@ -186,17 +181,14 @@
         accessText.textContent =
           "Bu düzenleme ekranına yalnızca yolculuk sahibi erişebilir.";
         accessLogin.hidden = true;
-        statusEl.textContent = "";
         return;
       }
 
       accessPrompt.hidden = true;
       tripContent.hidden = false;
       renderAll();
-      statusEl.textContent = "Düzenlenebilir";
     } catch (error) {
       showMessage(error.message, "error");
-      statusEl.textContent = "";
     }
   }
 
