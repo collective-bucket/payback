@@ -508,10 +508,12 @@ footer .wrap {
   .hero-actions {
     width: 100%;
     margin-top: 0;
+    flex-wrap: nowrap;
   }
 
   .hero-actions .btn {
-    flex: 1 1 100%;
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .field-grid {

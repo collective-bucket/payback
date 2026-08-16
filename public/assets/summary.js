@@ -67,20 +67,35 @@
 
   function renderSettlement(trip) {
     var result = window.PaybackSettle.settle(trip);
+    var expenses = trip.expenses || [];
 
     balancesEl.innerHTML = result.status.length
       ? result.status
           .map(function (row) {
+            var paidLabels = expenses
+              .filter(function (expense) {
+                return expense.payerId === row.id;
+              })
+              .map(function (expense) {
+                return expense.label;
+              });
+            var detail = paidLabels.length
+              ? paidLabels.join(", ")
+              : "Harcama yok";
             return (
-              '<div class="status-row"><span>' +
+              '<li class="list-item"><div class="list-main">' +
+              '<div class="title">' +
               window.PaybackTrips.escapeHtml(row.name) +
-              '</span><span class="amount">' +
+              " · " +
               window.PaybackTrips.formatMoney(row.amount) +
-              "</span></div>"
+              "</div>" +
+              '<div class="sub">' +
+              window.PaybackTrips.escapeHtml(detail) +
+              "</div></div></li>"
             );
           })
           .join("")
-      : '<p class="empty">Kişi yok.</p>';
+      : '<li class="empty">Kişi yok.</li>';
 
     paymentsEl.innerHTML = result.payments.length
       ? result.payments
