@@ -183,9 +183,9 @@ main { flex: 1; padding: 40px 0 56px; }
 .hero-toolbar {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .meta {
@@ -195,6 +195,7 @@ main { flex: 1; padding: 40px 0 56px; }
 
 .hero-toolbar .meta {
   margin: 0;
+  min-width: 0;
 }
 
 .panel {
@@ -528,6 +529,14 @@ footer .wrap {
   .hero-actions .btn {
     flex: 1 1 0;
     min-width: 0;
+  }
+
+  .hero-toolbar {
+    width: 100%;
+  }
+
+  .hero-toolbar .btn {
+    flex: 0 0 auto;
   }
 
   .field-grid {
