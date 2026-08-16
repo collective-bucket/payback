@@ -143,6 +143,32 @@ a:hover { color: var(--accent-strong); }
   height: 20px;
 }
 
+.row-actions .btn-ghost {
+  border-color: var(--card);
+  background: transparent;
+}
+
+.row-actions .btn-ghost:hover,
+.row-actions .btn-ghost:active,
+.row-actions .btn-ghost:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.row-actions .btn-ghost.danger {
+  border-color: var(--card);
+  color: var(--danger);
+}
+
+.row-actions .btn-ghost.danger:hover,
+.row-actions .btn-ghost.danger:active,
+.row-actions .btn-ghost.danger:focus-visible {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: var(--accent-strong); color: #fff; }
 .btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
