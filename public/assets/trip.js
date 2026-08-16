@@ -236,6 +236,7 @@
 
   function renderPeople() {
     var people = trip.people || [];
+    var expenses = trip.expenses || [];
     if (!people.length) {
       peopleList.innerHTML = '<li class="empty">Henüz kişi yok.</li>';
       return;
@@ -243,13 +244,30 @@
 
     peopleList.innerHTML = people
       .map(function (person) {
+        var paid = expenses.filter(function (expense) {
+          return expense.payerId === person.id;
+        });
+        var total = paid.reduce(function (sum, expense) {
+          return sum + Number(expense.amount || 0);
+        }, 0);
+        var labels = paid.map(function (expense) {
+          return expense.label;
+        });
+        var detail = labels.length ? labels.join(", ") : "Harcama yok";
+        var title =
+          window.PaybackTrips.escapeHtml(person.name) +
+          " · " +
+          window.PaybackTrips.formatMoney(total);
+        var sub = window.PaybackTrips.escapeHtml(detail);
+        var body =
+          '<div class="list-main"><div class="title">' +
+          title +
+          '</div><div class="sub">' +
+          sub +
+          "</div></div>";
+
         if (!canEdit) {
-          return (
-            '<li class="list-item">' +
-            '<div class="list-main"><div class="title">' +
-            window.PaybackTrips.escapeHtml(person.name) +
-            "</div></div></li>"
-          );
+          return '<li class="list-item">' + body + "</li>";
         }
 
         return (
@@ -258,9 +276,8 @@
           '" aria-label="' +
           window.PaybackTrips.escapeHtml(person.name) +
           ' kişisini düzenle">' +
-          '<div class="list-main"><div class="title">' +
-          window.PaybackTrips.escapeHtml(person.name) +
-          "</div></div></li>"
+          body +
+          "</li>"
         );
       })
       .join("");
