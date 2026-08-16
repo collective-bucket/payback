@@ -376,11 +376,13 @@ input[type="number"],
 select,
 textarea {
   width: 100%;
+  max-width: 100%;
   min-height: 42px;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
-  font: 15px var(--font);
+  /* iOS, 16px altındaki inputlarda odaklanınca zoom yapıyor. */
+  font: 16px var(--font);
   background: #fff;
   color: var(--text);
 }
