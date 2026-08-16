@@ -5,16 +5,26 @@
   var statusEl = document.querySelector("#home-status");
   var form = document.querySelector("#create-form");
   var message = document.querySelector("#create-message");
+  var homeMessage = document.querySelector("#home-message");
   var loginPrompt = document.querySelector("#login-prompt");
   var loginLink = document.querySelector("#login-link");
-  var newTripPanel = document.querySelector("#new-trip");
+  var createDialog = document.querySelector("#trip-create-dialog");
+  var confirmDialog = document.querySelector("#confirm-dialog");
+  var confirmTitle = document.querySelector("#confirm-title");
+  var confirmText = document.querySelector("#confirm-text");
+  var confirmDelete = document.querySelector("#confirm-delete");
   var newTripToggle = document.querySelector("#new-trip-toggle");
   var cancelTrip = document.querySelector("#cancel-trip");
   var session = null;
   var appliedUid = undefined;
   var listRequest = 0;
+  var pendingDeleteId = null;
+  var deleting = false;
   var debugMode = new URLSearchParams(window.location.search).has("debug");
   var debugEl = null;
+
+  var TRASH_ICON =
+    '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 
   function setStatus(text) {
     statusEl.textContent = text || "";
@@ -23,6 +33,11 @@
   function showMessage(text, type) {
     message.textContent = text || "";
     message.className = "message" + (type ? " message-" + type : "");
+  }
+
+  function showHomeMessage(text, type) {
+    homeMessage.textContent = text || "";
+    homeMessage.className = "message" + (type ? " message-" + type : "");
   }
 
   function debugLog(text) {
@@ -40,6 +55,25 @@
     return value && value.idToken ? value.uid : null;
   }
 
+  function openDialog(dialog) {
+    if (!dialog.open) dialog.showModal();
+  }
+
+  function closeDialog(dialog) {
+    if (dialog.open) dialog.close();
+  }
+
+  function bindDialog(dialog) {
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) closeDialog(dialog);
+    });
+    dialog.querySelectorAll("[data-close-dialog]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        closeDialog(dialog);
+      });
+    });
+  }
+
   function showLoggedOut() {
     session = null;
     loginPrompt.hidden = false;
@@ -48,9 +82,11 @@
       "/?returnTo=" +
       encodeURIComponent(window.location.href);
     newTripToggle.hidden = true;
-    newTripPanel.hidden = true;
+    closeDialog(createDialog);
+    closeDialog(confirmDialog);
     listEl.innerHTML = "";
     setStatus("");
+    showHomeMessage("");
   }
 
   async function renderTrips(activeSession) {
@@ -78,7 +114,8 @@
           var peopleCount = (trip.people || []).length;
           var expenseCount = (trip.expenses || []).length;
           return (
-            '<a class="trip-card" href="/y/' +
+            '<div class="trip-card">' +
+            '<a class="trip-card-main" href="/y/' +
             encodeURIComponent(trip.id) +
             '">' +
             "<h3>" +
@@ -89,7 +126,14 @@
             " kişi · " +
             expenseCount +
             " harcama</p>" +
-            "</a>"
+            "</a>" +
+            '<button type="button" class="btn btn-ghost btn-icon danger" data-delete-trip="' +
+            window.PaybackTrips.escapeHtml(trip.id) +
+            '" data-delete-title="' +
+            window.PaybackTrips.escapeHtml(trip.title) +
+            '" aria-label="Yolculuğu sil" title="Yolculuğu sil">' +
+            TRASH_ICON +
+            "</button></div>"
           );
         })
         .join("");
@@ -134,6 +178,25 @@
     return window.PaybackTrips.getOptionalSession();
   }
 
+  function openCreateDialog() {
+    showMessage("");
+    form.reset();
+    openDialog(createDialog);
+    form.querySelector('[name="title"]').focus();
+  }
+
+  function openDeleteConfirm(id, title) {
+    pendingDeleteId = id;
+    confirmTitle.textContent = "Yolculuk silinsin mi?";
+    confirmText.innerHTML =
+      "<strong>" +
+      window.PaybackTrips.escapeHtml(title) +
+      "</strong> kalıcı olarak silinecek. Bu işlem geri alınamaz.";
+    confirmDelete.textContent = "Yolculuğu sil";
+    confirmDelete.disabled = false;
+    openDialog(confirmDialog);
+  }
+
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
     showMessage("Oluşturuluyor…");
@@ -157,18 +220,56 @@
     }
   });
 
-  newTripToggle.addEventListener("click", function () {
-    newTripPanel.hidden = false;
-    newTripToggle.setAttribute("aria-expanded", "true");
-    form.querySelector('[name="title"]').focus();
-  });
+  newTripToggle.addEventListener("click", openCreateDialog);
 
   cancelTrip.addEventListener("click", function () {
-    newTripPanel.hidden = true;
-    newTripToggle.setAttribute("aria-expanded", "false");
+    closeDialog(createDialog);
+  });
+
+  listEl.addEventListener("click", function (event) {
+    var button = event.target.closest("[data-delete-trip]");
+    if (!button) return;
+    event.preventDefault();
+    openDeleteConfirm(
+      button.getAttribute("data-delete-trip"),
+      button.getAttribute("data-delete-title") || "Bu yolculuk"
+    );
+  });
+
+  confirmDelete.addEventListener("click", async function () {
+    if (!pendingDeleteId || deleting) return;
+    deleting = true;
+    confirmDelete.disabled = true;
+    try {
+      session = await resolveSession();
+      if (!sessionUid(session)) {
+        throw new Error("Silmek için giriş yap.");
+      }
+      await window.PaybackTrips.removeTrip(pendingDeleteId, session);
+      pendingDeleteId = null;
+      closeDialog(confirmDialog);
+      showHomeMessage("Yolculuk silindi.", "success");
+      await renderTrips(session);
+    } catch (error) {
+      showHomeMessage(error.message, "error");
+      confirmDelete.disabled = false;
+    } finally {
+      deleting = false;
+    }
+  });
+
+  confirmDialog.addEventListener("close", function () {
+    pendingDeleteId = null;
+    confirmDelete.disabled = false;
+  });
+
+  createDialog.addEventListener("close", function () {
     form.reset();
     showMessage("");
   });
+
+  bindDialog(createDialog);
+  bindDialog(confirmDialog);
 
   window.addEventListener("cb-auth-changed", function (event) {
     debugLog("cb-auth-changed");

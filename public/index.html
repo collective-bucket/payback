@@ -49,28 +49,54 @@
         <a id="login-link" class="btn btn-primary" href="#">Giriş yap</a>
       </div>
 
-      <section class="panel" id="new-trip" hidden>
-        <h2>Yolculuk ekle</h2>
-        <form id="create-form">
-          <label for="trip-title">Ad</label>
-          <input id="trip-title" name="title" type="text" maxlength="120" required placeholder="Kapadokya" />
-
-          <label for="trip-note">Not (opsiyonel)</label>
-          <textarea id="trip-note" name="note" maxlength="500" placeholder="Kısa açıklama"></textarea>
-
-          <div class="actions">
-            <button class="btn btn-primary" type="submit">Oluştur</button>
-            <button id="cancel-trip" class="btn btn-ghost" type="button">Vazgeç</button>
-          </div>
-          <p id="create-message" class="message" role="status"></p>
-        </form>
-      </section>
-
       <section>
         <div id="trip-list" class="trip-grid"></div>
       </section>
+
+      <p id="home-message" class="message" role="status"></p>
     </div>
   </main>
+
+  <dialog id="trip-create-dialog" class="modal">
+    <form id="create-form" class="modal-form" method="dialog">
+      <div class="modal-header">
+        <h2>Yolculuk ekle</h2>
+        <button id="cancel-trip" class="btn btn-ghost btn-icon" type="button" aria-label="Kapat" title="Kapat">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal-content">
+        <label for="trip-title">Ad</label>
+        <input id="trip-title" name="title" type="text" maxlength="120" required placeholder="Kapadokya" />
+
+        <label for="trip-note">Not (opsiyonel)</label>
+        <textarea id="trip-note" name="note" maxlength="500" placeholder="Kısa açıklama"></textarea>
+        <p id="create-message" class="message" role="status"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" data-close-dialog>Vazgeç</button>
+        <button class="btn btn-primary" type="submit">Oluştur</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="modal">
+    <div class="modal-body">
+      <div class="modal-header">
+        <h2 id="confirm-title">Silinsin mi?</h2>
+        <button class="btn btn-ghost btn-icon" type="button" data-close-dialog aria-label="Kapat" title="Kapat">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal-content">
+        <p id="confirm-text" class="modal-text"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" data-close-dialog>Vazgeç</button>
+        <button id="confirm-delete" class="btn btn-danger-fill" type="button">Sil</button>
+      </div>
+    </div>
+  </dialog>
 
   <footer>
     <div class="wrap">

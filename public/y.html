@@ -54,22 +54,6 @@
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             </button>
           </div>
-          <form id="person-form" class="compact-row" hidden>
-            <input
-              id="person-name"
-              type="text"
-              maxlength="60"
-              placeholder="Kişi adı"
-              aria-label="Kişi adı"
-              required
-            />
-            <button id="person-submit" class="btn btn-primary btn-icon" type="submit" aria-label="Ekle" title="Ekle">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
-            <button id="person-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç" title="Vazgeç">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-            </button>
-          </form>
           <ul id="people-list" class="list"></ul>
         </section>
 
@@ -80,37 +64,6 @@
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             </button>
           </div>
-          <form id="expense-form" class="compact-form" hidden>
-            <div class="field-grid">
-              <div>
-                <label for="expense-label">Açıklama</label>
-                <input id="expense-label" type="text" maxlength="120" placeholder="Benzin" required />
-              </div>
-              <div>
-                <label for="expense-amount">Tutar (₺)</label>
-                <input id="expense-amount" type="number" min="0.01" step="0.01" required />
-              </div>
-            </div>
-
-            <label for="expense-payer">Ödeyen</label>
-            <select id="expense-payer" required></select>
-
-            <div class="include-head">
-              <label>Dahil kişiler</label>
-              <div class="include-tools">
-                <button id="include-all" class="btn btn-ghost btn-tiny" type="button">Tümü</button>
-                <button id="include-none" class="btn btn-ghost btn-tiny" type="button">Hiçbiri</button>
-              </div>
-            </div>
-            <div id="expense-people" class="person-chips"></div>
-
-            <div class="actions">
-              <button id="expense-submit" class="btn btn-primary" type="submit">Harcama ekle</button>
-              <button id="expense-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç" title="Vazgeç">
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-              </button>
-            </div>
-          </form>
           <ul id="expense-list" class="list"></ul>
         </section>
 
@@ -118,6 +71,93 @@
       </div>
     </div>
   </main>
+
+  <dialog id="person-dialog" class="modal">
+    <form id="person-form" class="modal-form" method="dialog">
+      <div class="modal-header">
+        <h2 id="person-dialog-title">Kişi ekle</h2>
+        <button class="btn btn-ghost btn-icon" type="button" data-close-dialog aria-label="Kapat" title="Kapat">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal-content">
+        <label for="person-name">Ad</label>
+        <input
+          id="person-name"
+          type="text"
+          maxlength="60"
+          placeholder="Kişi adı"
+          aria-label="Kişi adı"
+          required
+        />
+        <p id="person-message" class="message" role="status"></p>
+      </div>
+      <div class="modal-actions">
+        <button id="person-delete" class="btn btn-ghost danger" type="button" hidden>Sil</button>
+        <button class="btn btn-ghost" type="button" data-close-dialog>Vazgeç</button>
+        <button id="person-submit" class="btn btn-primary" type="submit">Kişi ekle</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="expense-dialog" class="modal">
+    <form id="expense-form" class="modal-form" method="dialog">
+      <div class="modal-header">
+        <h2 id="expense-dialog-title">Harcama ekle</h2>
+        <button class="btn btn-ghost btn-icon" type="button" data-close-dialog aria-label="Kapat" title="Kapat">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal-content">
+        <div class="field-grid">
+          <div>
+            <label for="expense-label">Açıklama</label>
+            <input id="expense-label" type="text" maxlength="120" placeholder="Benzin" required />
+          </div>
+          <div>
+            <label for="expense-amount">Tutar (₺)</label>
+            <input id="expense-amount" type="number" min="0.01" step="0.01" required />
+          </div>
+        </div>
+
+        <label for="expense-payer">Ödeyen</label>
+        <select id="expense-payer" required></select>
+
+        <div class="include-head">
+          <label>Dahil kişiler</label>
+          <div class="include-tools">
+            <button id="include-all" class="btn btn-ghost btn-tiny" type="button">Tümü</button>
+            <button id="include-none" class="btn btn-ghost btn-tiny" type="button">Hiçbiri</button>
+          </div>
+        </div>
+        <div id="expense-people" class="person-chips"></div>
+        <p id="expense-message" class="message" role="status"></p>
+      </div>
+      <div class="modal-actions">
+        <button id="expense-delete" class="btn btn-ghost danger" type="button" hidden>Sil</button>
+        <button class="btn btn-ghost" type="button" data-close-dialog>Vazgeç</button>
+        <button id="expense-submit" class="btn btn-primary" type="submit">Harcama ekle</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="modal">
+    <div class="modal-body">
+      <div class="modal-header">
+        <h2 id="confirm-title">Silinsin mi?</h2>
+        <button class="btn btn-ghost btn-icon" type="button" data-close-dialog aria-label="Kapat" title="Kapat">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal-content">
+        <p id="confirm-text" class="modal-text"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" data-close-dialog>Vazgeç</button>
+        <button id="confirm-delete" class="btn btn-danger-fill" type="button">Sil</button>
+      </div>
+    </div>
+  </dialog>
 
   <footer>
     <div class="wrap">

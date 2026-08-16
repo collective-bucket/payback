@@ -6,15 +6,22 @@
   var noteEl = document.querySelector("#trip-note");
   var peopleList = document.querySelector("#people-list");
   var expenseList = document.querySelector("#expense-list");
+  var personDialog = document.querySelector("#person-dialog");
+  var expenseDialog = document.querySelector("#expense-dialog");
+  var confirmDialog = document.querySelector("#confirm-dialog");
   var personForm = document.querySelector("#person-form");
   var expenseForm = document.querySelector("#expense-form");
+  var personDialogTitle = document.querySelector("#person-dialog-title");
+  var expenseDialogTitle = document.querySelector("#expense-dialog-title");
   var personNameInput = document.querySelector("#person-name");
   var personSubmit = document.querySelector("#person-submit");
+  var personDelete = document.querySelector("#person-delete");
   var payerSelect = document.querySelector("#expense-payer");
   var peopleChecks = document.querySelector("#expense-people");
   var expenseLabel = document.querySelector("#expense-label");
   var expenseAmount = document.querySelector("#expense-amount");
   var expenseSubmit = document.querySelector("#expense-submit");
+  var expenseDelete = document.querySelector("#expense-delete");
   var settleBtn = document.querySelector("#settle-btn");
   var ownerActions = document.querySelector("#owner-actions");
   var deleteTripBtn = document.querySelector("#delete-trip");
@@ -24,32 +31,33 @@
   var accessLogin = document.querySelector("#access-login");
   var tripContent = document.querySelector("#trip-content");
   var personToggle = document.querySelector("#person-toggle");
-  var personCancel = document.querySelector("#person-cancel");
   var expenseToggle = document.querySelector("#expense-toggle");
-  var expenseCancel = document.querySelector("#expense-cancel");
   var includeAll = document.querySelector("#include-all");
   var includeNone = document.querySelector("#include-none");
+  var confirmTitle = document.querySelector("#confirm-title");
+  var confirmText = document.querySelector("#confirm-text");
+  var confirmDelete = document.querySelector("#confirm-delete");
+  var personMessage = document.querySelector("#person-message");
+  var expenseMessage = document.querySelector("#expense-message");
 
   var trip = null;
   var session = null;
   var canEdit = false;
   var editingPersonId = null;
   var editingExpenseId = null;
-
-  var ICONS = {
-    plus:
-      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
-    edit:
-      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5-4-4L4 16v4zm11.5-15.5 4 4"/></svg>',
-    trash:
-      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
-    check:
-      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7.5"/></svg>'
-  };
+  var pendingDelete = null;
+  var deleting = false;
+  var saving = false;
 
   function showMessage(text, type) {
     messageEl.textContent = text || "";
     messageEl.className = "message" + (type ? " message-" + type : "");
+  }
+
+  function showFormMessage(el, text, type) {
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = "message" + (type ? " message-" + type : "");
   }
 
   function tripIdFromPath() {
@@ -57,6 +65,29 @@
     if (parts[0] === "y" && parts[1]) return decodeURIComponent(parts[1]);
     var params = new URLSearchParams(window.location.search);
     return params.get("id");
+  }
+
+  function cloneTrip(source) {
+    return JSON.parse(JSON.stringify(source));
+  }
+
+  function openDialog(dialog) {
+    if (!dialog.open) dialog.showModal();
+  }
+
+  function closeDialog(dialog) {
+    if (dialog.open) dialog.close();
+  }
+
+  function bindDialog(dialog) {
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) closeDialog(dialog);
+    });
+    dialog.querySelectorAll("[data-close-dialog]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        closeDialog(dialog);
+      });
+    });
   }
 
   function selectedPersonIds() {
@@ -109,64 +140,59 @@
     else setIncludeChecks([], true);
   }
 
-  function closePersonForm() {
+  function resetPersonFormState() {
     editingPersonId = null;
-    personForm.hidden = true;
-    personToggle.hidden = !canEdit;
     personForm.reset();
-    personSubmit.innerHTML = ICONS.plus;
-    personSubmit.setAttribute("aria-label", "Ekle");
-    personSubmit.setAttribute("title", "Ekle");
+    personDialogTitle.textContent = "Kişi ekle";
+    personSubmit.textContent = "Kişi ekle";
+    personDelete.hidden = true;
+    showFormMessage(personMessage, "");
   }
 
-  function openPersonForm(person) {
-    expenseForm.hidden = true;
-    expenseToggle.hidden = !canEdit;
+  function resetExpenseFormState() {
     editingExpenseId = null;
+    expenseForm.reset();
+    expenseDialogTitle.textContent = "Harcama ekle";
     expenseSubmit.textContent = "Harcama ekle";
+    expenseDelete.hidden = true;
+    showFormMessage(expenseMessage, "");
+    if (trip) fillPeopleOptions();
+  }
 
-    personForm.hidden = false;
-    personToggle.hidden = true;
+  function closePersonDialog() {
+    closeDialog(personDialog);
+    resetPersonFormState();
+  }
+
+  function closeExpenseDialog() {
+    closeDialog(expenseDialog);
+    resetExpenseFormState();
+  }
+
+  function openPersonDialog(person) {
+    closeExpenseDialog();
+    showFormMessage(personMessage, "");
     if (person) {
       editingPersonId = person.id;
       personNameInput.value = person.name;
-      personSubmit.innerHTML = ICONS.check;
-      personSubmit.setAttribute("aria-label", "Kaydet");
-      personSubmit.setAttribute("title", "Kaydet");
+      personDialogTitle.textContent = "Kişiyi düzenle";
+      personSubmit.textContent = "Kaydet";
+      personDelete.hidden = false;
     } else {
-      editingPersonId = null;
-      personForm.reset();
-      personSubmit.innerHTML = ICONS.plus;
-      personSubmit.setAttribute("aria-label", "Ekle");
-      personSubmit.setAttribute("title", "Ekle");
+      resetPersonFormState();
     }
+    openDialog(personDialog);
     personNameInput.focus();
   }
 
-  function closeExpenseForm() {
-    editingExpenseId = null;
-    expenseForm.hidden = true;
-    expenseToggle.hidden = !canEdit;
-    expenseForm.reset();
-    expenseSubmit.textContent = "Harcama ekle";
-    fillPeopleOptions();
-  }
-
-  function openExpenseForm(expense) {
+  function openExpenseDialog(expense) {
     if (!(trip.people || []).length) {
       showMessage("Önce en az bir kişi ekle.", "error");
       return;
     }
 
-    personForm.hidden = true;
-    personToggle.hidden = !canEdit;
-    editingPersonId = null;
-    personSubmit.innerHTML = ICONS.plus;
-    personSubmit.setAttribute("aria-label", "Ekle");
-    personSubmit.setAttribute("title", "Ekle");
-
-    expenseForm.hidden = false;
-    expenseToggle.hidden = true;
+    closePersonDialog();
+    showFormMessage(expenseMessage, "");
 
     if (expense) {
       editingExpenseId = expense.id;
@@ -174,48 +200,70 @@
       expenseAmount.value = expense.amount;
       fillPeopleOptions(expense.personIds || []);
       payerSelect.value = expense.payerId;
+      expenseDialogTitle.textContent = "Harcamayı düzenle";
       expenseSubmit.textContent = "Kaydet";
+      expenseDelete.hidden = false;
     } else {
-      editingExpenseId = null;
-      expenseForm.reset();
+      resetExpenseFormState();
       fillPeopleOptions();
-      expenseSubmit.textContent = "Harcama ekle";
     }
+
+    openDialog(expenseDialog);
     expenseLabel.focus();
+  }
+
+  function openConfirm(options) {
+    pendingDelete = options;
+    confirmTitle.textContent = options.title;
+    confirmText.innerHTML =
+      "<strong>" +
+      window.PaybackTrips.escapeHtml(options.name) +
+      "</strong> " +
+      options.detail;
+    confirmDelete.textContent = options.actionLabel;
+    confirmDelete.disabled = false;
+    openDialog(confirmDialog);
+  }
+
+  function personIsUsed(id) {
+    return (trip.expenses || []).some(function (expense) {
+      return (
+        expense.payerId === id ||
+        (expense.personIds || []).indexOf(id) >= 0
+      );
+    });
   }
 
   function renderPeople() {
     var people = trip.people || [];
     if (!people.length) {
       peopleList.innerHTML = '<li class="empty">Henüz kişi yok.</li>';
-    } else {
-      peopleList.innerHTML = people
-        .map(function (person) {
+      return;
+    }
+
+    peopleList.innerHTML = people
+      .map(function (person) {
+        if (!canEdit) {
           return (
             '<li class="list-item">' +
             '<div class="list-main"><div class="title">' +
             window.PaybackTrips.escapeHtml(person.name) +
-            "</div></div>" +
-            (canEdit
-              ? '<div class="row-actions">' +
-                '<button type="button" class="btn btn-ghost btn-icon" data-edit-person="' +
-                window.PaybackTrips.escapeHtml(person.id) +
-                '" aria-label="Düzenle" title="Düzenle">' +
-                ICONS.edit +
-                "</button>" +
-                '<button type="button" class="btn btn-ghost btn-icon danger" data-remove-person="' +
-                window.PaybackTrips.escapeHtml(person.id) +
-                '" aria-label="Sil" title="Sil">' +
-                ICONS.trash +
-                "</button></div>"
-              : "") +
-            "</li>"
+            "</div></div></li>"
           );
-        })
-        .join("");
-    }
+        }
 
-    if (expenseForm.hidden) fillPeopleOptions();
+        return (
+          '<li class="list-item is-action" tabindex="0" role="button" data-open-person="' +
+          window.PaybackTrips.escapeHtml(person.id) +
+          '" aria-label="' +
+          window.PaybackTrips.escapeHtml(person.name) +
+          ' kişisini düzenle">' +
+          '<div class="list-main"><div class="title">' +
+          window.PaybackTrips.escapeHtml(person.name) +
+          "</div></div></li>"
+        );
+      })
+      .join("");
   }
 
   function renderExpenses() {
@@ -234,35 +282,40 @@
             return window.PaybackTrips.personName(trip, id);
           })
           .join(", ");
-        return (
-          '<li class="list-item">' +
-          '<div class="list-main">' +
-          '<div class="title">' +
+        var title =
           window.PaybackTrips.escapeHtml(expense.label) +
           " · " +
-          window.PaybackTrips.formatMoney(expense.amount) +
-          "</div>" +
-          '<div class="sub">Ödeyen: ' +
+          window.PaybackTrips.formatMoney(expense.amount);
+        var sub =
+          "Ödeyen: " +
           window.PaybackTrips.escapeHtml(
             window.PaybackTrips.personName(trip, expense.payerId)
           ) +
           " · Dahil: " +
-          window.PaybackTrips.escapeHtml(included) +
-          "</div></div>" +
-          (canEdit
-            ? '<div class="row-actions">' +
-              '<button type="button" class="btn btn-ghost btn-icon" data-edit-expense="' +
-              window.PaybackTrips.escapeHtml(expense.id) +
-              '" aria-label="Düzenle" title="Düzenle">' +
-              ICONS.edit +
-              "</button>" +
-              '<button type="button" class="btn btn-ghost btn-icon danger" data-remove-expense="' +
-              window.PaybackTrips.escapeHtml(expense.id) +
-              '" aria-label="Sil" title="Sil">' +
-              ICONS.trash +
-              "</button></div>"
-            : "") +
-          "</li>"
+          window.PaybackTrips.escapeHtml(included);
+
+        if (!canEdit) {
+          return (
+            '<li class="list-item">' +
+            '<div class="list-main"><div class="title">' +
+            title +
+            '</div><div class="sub">' +
+            sub +
+            "</div></div></li>"
+          );
+        }
+
+        return (
+          '<li class="list-item is-action" tabindex="0" role="button" data-open-expense="' +
+          window.PaybackTrips.escapeHtml(expense.id) +
+          '" aria-label="' +
+          window.PaybackTrips.escapeHtml(expense.label) +
+          ' harcamasını düzenle">' +
+          '<div class="list-main"><div class="title">' +
+          title +
+          '</div><div class="sub">' +
+          sub +
+          "</div></div></li>"
         );
       })
       .join("");
@@ -274,8 +327,8 @@
     noteEl.textContent = trip.note || "Kişi ve harcama ekle, sonra hesabı çıkar.";
     settleBtn.href = window.PaybackTrips.publicUrl(trip.id);
     ownerActions.hidden = false;
-    if (personForm.hidden) personToggle.hidden = !canEdit;
-    if (expenseForm.hidden) expenseToggle.hidden = !canEdit;
+    personToggle.hidden = !canEdit;
+    expenseToggle.hidden = !canEdit;
   }
 
   function renderAll() {
@@ -284,10 +337,12 @@
     renderExpenses();
   }
 
-  async function persist() {
+  async function persistDraft(nextTrip) {
     if (!canEdit || !session) throw new Error("Düzenleme yetkisi yok.");
-    trip = await window.PaybackTrips.saveTrip(trip, session);
+    var saved = await window.PaybackTrips.saveTrip(nextTrip, session);
+    trip = saved;
     renderAll();
+    return saved;
   }
 
   var appliedUid = undefined;
@@ -362,6 +417,35 @@
     }
   }
 
+  function activateListItem(event, attribute, openFn) {
+    var item = event.target.closest("[" + attribute + "]");
+    if (!item || !canEdit) return;
+    var id = item.getAttribute(attribute);
+    openFn(id);
+  }
+
+  function handleListKey(event, attribute, openFn) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    var item = event.target.closest("[" + attribute + "]");
+    if (!item || !canEdit) return;
+    event.preventDefault();
+    openFn(item.getAttribute(attribute));
+  }
+
+  function openPersonById(id) {
+    var person = (trip.people || []).find(function (row) {
+      return row.id === id;
+    });
+    if (person) openPersonDialog(person);
+  }
+
+  function openExpenseById(id) {
+    var expense = (trip.expenses || []).find(function (row) {
+      return row.id === id;
+    });
+    if (expense) openExpenseDialog(expense);
+  }
+
   window.addEventListener("cb-auth-changed", function (event) {
     var next = event.detail && event.detail.session;
     if (sessionUid(next) === appliedUid) return;
@@ -370,197 +454,150 @@
 
   personForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    if (!canEdit) return;
+    if (!canEdit || saving) return;
     var name = personNameInput.value.trim();
     if (!name) return;
 
-    if (editingPersonId) {
-      trip.people = (trip.people || []).map(function (person) {
-        if (person.id !== editingPersonId) return person;
-        return { id: person.id, name: name };
-      });
-      try {
-        await persist();
-        closePersonForm();
-        showMessage("Kişi güncellendi.", "success");
-      } catch (error) {
-        showMessage(error.message, "error");
-      }
-      return;
-    }
+    var draft = cloneTrip(trip);
+    saving = true;
+    personSubmit.disabled = true;
 
-    if ((trip.people || []).length >= window.PaybackTrips.MAX_PEOPLE) {
-      showMessage("En fazla " + window.PaybackTrips.MAX_PEOPLE + " kişi eklenebilir.", "error");
-      return;
-    }
-    trip.people = (trip.people || []).concat([
-      { id: window.PaybackTrips.createId(), name: name }
-    ]);
     try {
-      await persist();
-      personForm.reset();
-      personForm.hidden = false;
-      personToggle.hidden = true;
-      personSubmit.innerHTML = ICONS.plus;
-      personSubmit.setAttribute("aria-label", "Ekle");
-      personSubmit.setAttribute("title", "Ekle");
+      if (editingPersonId) {
+        draft.people = (draft.people || []).map(function (person) {
+          if (person.id !== editingPersonId) return person;
+          return { id: person.id, name: name };
+        });
+        await persistDraft(draft);
+        closePersonDialog();
+        showMessage("Kişi güncellendi.", "success");
+        return;
+      }
+
+      if ((draft.people || []).length >= window.PaybackTrips.MAX_PEOPLE) {
+        showFormMessage(
+          personMessage,
+          "En fazla " + window.PaybackTrips.MAX_PEOPLE + " kişi eklenebilir.",
+          "error"
+        );
+        return;
+      }
+
+      draft.people = (draft.people || []).concat([
+        { id: window.PaybackTrips.createId(), name: name }
+      ]);
+      await persistDraft(draft);
+      resetPersonFormState();
       personNameInput.focus();
       showMessage("Kişi eklendi.", "success");
     } catch (error) {
-      showMessage(error.message, "error");
+      showFormMessage(personMessage, error.message, "error");
+    } finally {
+      saving = false;
+      personSubmit.disabled = false;
     }
   });
 
   expenseForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    if (!canEdit) return;
+    if (!canEdit || saving) return;
     if (!(trip.people || []).length) {
-      showMessage("Önce en az bir kişi ekle.", "error");
+      showFormMessage(expenseMessage, "Önce en az bir kişi ekle.", "error");
       return;
     }
 
     var personIds = selectedPersonIds();
     if (!personIds.length) {
-      showMessage("En az bir dahil kişi seç.", "error");
+      showFormMessage(expenseMessage, "En az bir dahil kişi seç.", "error");
       return;
     }
 
     var label = expenseLabel.value.trim();
     var amount = Number(expenseAmount.value);
     var payerId = payerSelect.value;
+    var draft = cloneTrip(trip);
+    saving = true;
+    expenseSubmit.disabled = true;
 
-    if (editingExpenseId) {
-      trip.expenses = (trip.expenses || []).map(function (expense) {
-        if (expense.id !== editingExpenseId) return expense;
-        return {
-          id: expense.id,
+    try {
+      if (editingExpenseId) {
+        draft.expenses = (draft.expenses || []).map(function (expense) {
+          if (expense.id !== editingExpenseId) return expense;
+          return {
+            id: expense.id,
+            payerId: payerId,
+            label: label,
+            amount: amount,
+            personIds: personIds,
+            createdAt: expense.createdAt || new Date().toISOString()
+          };
+        });
+        await persistDraft(draft);
+        closeExpenseDialog();
+        showMessage("Harcama güncellendi.", "success");
+        return;
+      }
+
+      if ((draft.expenses || []).length >= window.PaybackTrips.MAX_EXPENSES) {
+        showFormMessage(
+          expenseMessage,
+          "En fazla " + window.PaybackTrips.MAX_EXPENSES + " harcama eklenebilir.",
+          "error"
+        );
+        return;
+      }
+
+      draft.expenses = (draft.expenses || []).concat([
+        {
+          id: window.PaybackTrips.createId(),
           payerId: payerId,
           label: label,
           amount: amount,
           personIds: personIds,
-          createdAt: expense.createdAt || new Date().toISOString()
-        };
-      });
-      try {
-        await persist();
-        closeExpenseForm();
-        showMessage("Harcama güncellendi.", "success");
-      } catch (error) {
-        showMessage(error.message, "error");
-      }
-      return;
-    }
+          createdAt: new Date().toISOString()
+        }
+      ]);
 
-    if ((trip.expenses || []).length >= window.PaybackTrips.MAX_EXPENSES) {
-      showMessage(
-        "En fazla " + window.PaybackTrips.MAX_EXPENSES + " harcama eklenebilir.",
-        "error"
-      );
-      return;
-    }
-
-    trip.expenses = (trip.expenses || []).concat([
-      {
-        id: window.PaybackTrips.createId(),
-        payerId: payerId,
-        label: label,
-        amount: amount,
-        personIds: personIds,
-        createdAt: new Date().toISOString()
-      }
-    ]);
-
-    try {
-      await persist();
+      await persistDraft(draft);
       expenseLabel.value = "";
       expenseAmount.value = "";
       setIncludeChecks([], true);
-      showMessage("Harcama eklendi.", "success");
-      expenseForm.hidden = false;
-      expenseToggle.hidden = true;
+      expenseDialogTitle.textContent = "Harcama ekle";
       expenseSubmit.textContent = "Harcama ekle";
+      expenseDelete.hidden = true;
+      editingExpenseId = null;
+      showMessage("Harcama eklendi.", "success");
       expenseLabel.focus();
     } catch (error) {
-      showMessage(error.message, "error");
+      showFormMessage(expenseMessage, error.message, "error");
+    } finally {
+      saving = false;
+      expenseSubmit.disabled = false;
     }
   });
 
-  peopleList.addEventListener("click", async function (event) {
-    var editButton = event.target.closest("[data-edit-person]");
-    if (editButton && canEdit) {
-      var editId = editButton.getAttribute("data-edit-person");
-      var person = (trip.people || []).find(function (row) {
-        return row.id === editId;
-      });
-      if (person) openPersonForm(person);
-      return;
-    }
-
-    var button = event.target.closest("[data-remove-person]");
-    if (!button || !canEdit) return;
-    var id = button.getAttribute("data-remove-person");
-    var used = (trip.expenses || []).some(function (expense) {
-      return (
-        expense.payerId === id ||
-        (expense.personIds || []).indexOf(id) >= 0
-      );
-    });
-    if (used) {
-      showMessage("Bu kişi bir harcamada geçiyor; önce ilgili harcamaları sil.", "error");
-      return;
-    }
-    trip.people = (trip.people || []).filter(function (person) {
-      return person.id !== id;
-    });
-    try {
-      await persist();
-      if (editingPersonId === id) closePersonForm();
-      showMessage("Kişi silindi.", "success");
-    } catch (error) {
-      showMessage(error.message, "error");
-    }
+  peopleList.addEventListener("click", function (event) {
+    activateListItem(event, "data-open-person", openPersonById);
   });
 
-  expenseList.addEventListener("click", async function (event) {
-    var editButton = event.target.closest("[data-edit-expense]");
-    if (editButton && canEdit) {
-      var editId = editButton.getAttribute("data-edit-expense");
-      var expense = (trip.expenses || []).find(function (row) {
-        return row.id === editId;
-      });
-      if (expense) openExpenseForm(expense);
-      return;
-    }
+  peopleList.addEventListener("keydown", function (event) {
+    handleListKey(event, "data-open-person", openPersonById);
+  });
 
-    var button = event.target.closest("[data-remove-expense]");
-    if (!button || !canEdit) return;
-    var id = button.getAttribute("data-remove-expense");
-    trip.expenses = (trip.expenses || []).filter(function (expense) {
-      return expense.id !== id;
-    });
-    try {
-      await persist();
-      if (editingExpenseId === id) closeExpenseForm();
-      showMessage("Harcama silindi.", "success");
-    } catch (error) {
-      showMessage(error.message, "error");
-    }
+  expenseList.addEventListener("click", function (event) {
+    activateListItem(event, "data-open-expense", openExpenseById);
+  });
+
+  expenseList.addEventListener("keydown", function (event) {
+    handleListKey(event, "data-open-expense", openExpenseById);
   });
 
   personToggle.addEventListener("click", function () {
-    openPersonForm(null);
-  });
-
-  personCancel.addEventListener("click", function () {
-    closePersonForm();
+    openPersonDialog(null);
   });
 
   expenseToggle.addEventListener("click", function () {
-    openExpenseForm(null);
-  });
-
-  expenseCancel.addEventListener("click", function () {
-    closeExpenseForm();
+    openExpenseDialog(null);
   });
 
   includeAll.addEventListener("click", function () {
@@ -571,17 +608,121 @@
     setIncludeChecks([], false);
   });
 
-  deleteTripBtn.addEventListener("click", async function () {
-    if (!canEdit) return;
-    if (!window.confirm("Bu yolculuğu silmek istiyor musun?")) return;
+  personDelete.addEventListener("click", function () {
+    if (!editingPersonId || !canEdit) return;
+    if (personIsUsed(editingPersonId)) {
+      showFormMessage(
+        personMessage,
+        "Bu kişi bir harcamada geçiyor; önce ilgili harcamaları sil.",
+        "error"
+      );
+      return;
+    }
+    var person = (trip.people || []).find(function (row) {
+      return row.id === editingPersonId;
+    });
+    openConfirm({
+      type: "person",
+      id: editingPersonId,
+      title: "Kişi silinsin mi?",
+      name: person ? person.name : "Bu kişi",
+      detail: "kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      actionLabel: "Kişiyi sil"
+    });
+  });
+
+  expenseDelete.addEventListener("click", function () {
+    if (!editingExpenseId || !canEdit) return;
+    var expense = (trip.expenses || []).find(function (row) {
+      return row.id === editingExpenseId;
+    });
+    openConfirm({
+      type: "expense",
+      id: editingExpenseId,
+      title: "Harcama silinsin mi?",
+      name: expense ? expense.label : "Bu harcama",
+      detail: "kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      actionLabel: "Harcamayı sil"
+    });
+  });
+
+  deleteTripBtn.addEventListener("click", function () {
+    if (!canEdit || !trip) return;
+    openConfirm({
+      type: "trip",
+      id: trip.id,
+      title: "Yolculuk silinsin mi?",
+      name: trip.title || "Bu yolculuk",
+      detail: "kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      actionLabel: "Yolculuğu sil"
+    });
+  });
+
+  confirmDelete.addEventListener("click", async function () {
+    if (!pendingDelete || deleting || !canEdit) return;
+    deleting = true;
+    confirmDelete.disabled = true;
+
     try {
-      session = await window.PaybackTrips.requireSession();
-      await window.PaybackTrips.removeTrip(trip.id, session);
-      window.location.assign("/");
+      if (pendingDelete.type === "trip") {
+        session = await window.PaybackTrips.requireSession();
+        await window.PaybackTrips.removeTrip(pendingDelete.id, session);
+        window.location.assign("/");
+        return;
+      }
+
+      var draft = cloneTrip(trip);
+      if (pendingDelete.type === "person") {
+        if (personIsUsed(pendingDelete.id)) {
+          throw new Error(
+            "Bu kişi bir harcamada geçiyor; önce ilgili harcamaları sil."
+          );
+        }
+        draft.people = (draft.people || []).filter(function (person) {
+          return person.id !== pendingDelete.id;
+        });
+        await persistDraft(draft);
+        pendingDelete = null;
+        closeDialog(confirmDialog);
+        closePersonDialog();
+        showMessage("Kişi silindi.", "success");
+        return;
+      }
+
+      if (pendingDelete.type === "expense") {
+        draft.expenses = (draft.expenses || []).filter(function (expense) {
+          return expense.id !== pendingDelete.id;
+        });
+        await persistDraft(draft);
+        pendingDelete = null;
+        closeDialog(confirmDialog);
+        closeExpenseDialog();
+        showMessage("Harcama silindi.", "success");
+      }
     } catch (error) {
       showMessage(error.message, "error");
+      confirmDelete.disabled = false;
+    } finally {
+      deleting = false;
     }
   });
+
+  personDialog.addEventListener("close", function () {
+    resetPersonFormState();
+  });
+
+  expenseDialog.addEventListener("close", function () {
+    resetExpenseFormState();
+  });
+
+  confirmDialog.addEventListener("close", function () {
+    pendingDelete = null;
+    confirmDelete.disabled = false;
+  });
+
+  bindDialog(personDialog);
+  bindDialog(expenseDialog);
+  bindDialog(confirmDialog);
 
   boot();
 })();
