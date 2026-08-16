@@ -8,8 +8,13 @@
   var expenseList = document.querySelector("#expense-list");
   var personForm = document.querySelector("#person-form");
   var expenseForm = document.querySelector("#expense-form");
+  var personNameInput = document.querySelector("#person-name");
+  var personSubmit = document.querySelector("#person-submit");
   var payerSelect = document.querySelector("#expense-payer");
   var peopleChecks = document.querySelector("#expense-people");
+  var expenseLabel = document.querySelector("#expense-label");
+  var expenseAmount = document.querySelector("#expense-amount");
+  var expenseSubmit = document.querySelector("#expense-submit");
   var settleBtn = document.querySelector("#settle-btn");
   var ownerActions = document.querySelector("#owner-actions");
   var deleteTripBtn = document.querySelector("#delete-trip");
@@ -22,10 +27,14 @@
   var personCancel = document.querySelector("#person-cancel");
   var expenseToggle = document.querySelector("#expense-toggle");
   var expenseCancel = document.querySelector("#expense-cancel");
+  var includeAll = document.querySelector("#include-all");
+  var includeNone = document.querySelector("#include-none");
 
   var trip = null;
   var session = null;
   var canEdit = false;
+  var editingPersonId = null;
+  var editingExpenseId = null;
 
   function showMessage(text, type) {
     messageEl.textContent = text || "";
@@ -39,29 +48,26 @@
     return params.get("id");
   }
 
-  function renderPeople() {
-    var people = trip.people || [];
-    if (!people.length) {
-      peopleList.innerHTML = '<li class="empty">Henüz kişi yok.</li>';
-    } else {
-      peopleList.innerHTML = people
-        .map(function (person) {
-          return (
-            '<li class="list-item">' +
-            '<div><div class="title">' +
-            window.PaybackTrips.escapeHtml(person.name) +
-            "</div></div>" +
-            (canEdit
-              ? '<button type="button" class="btn btn-ghost danger" data-remove-person="' +
-                window.PaybackTrips.escapeHtml(person.id) +
-                '">Sil</button>'
-              : "") +
-            "</li>"
-          );
-        })
-        .join("");
-    }
+  function selectedPersonIds() {
+    return Array.from(
+      peopleChecks.querySelectorAll('input[name="personIds"]:checked')
+    ).map(function (input) {
+      return input.value;
+    });
+  }
 
+  function setIncludeChecks(personIds, checkedAll) {
+    var selected = {};
+    (personIds || []).forEach(function (id) {
+      selected[id] = true;
+    });
+    peopleChecks.querySelectorAll('input[name="personIds"]').forEach(function (input) {
+      input.checked = checkedAll ? true : Boolean(selected[input.value]);
+    });
+  }
+
+  function fillPeopleOptions(selectedIds) {
+    var people = trip.people || [];
     payerSelect.innerHTML = people
       .map(function (person) {
         return (
@@ -77,14 +83,116 @@
     peopleChecks.innerHTML = people
       .map(function (person) {
         return (
-          '<label><input type="checkbox" name="personIds" value="' +
+          '<label class="chip">' +
+          '<input type="checkbox" name="personIds" value="' +
           window.PaybackTrips.escapeHtml(person.id) +
-          '" checked />' +
+          '" />' +
+          "<span>" +
           window.PaybackTrips.escapeHtml(person.name) +
-          "</label>"
+          "</span></label>"
         );
       })
       .join("");
+
+    if (selectedIds) setIncludeChecks(selectedIds, false);
+    else setIncludeChecks([], true);
+  }
+
+  function closePersonForm() {
+    editingPersonId = null;
+    personForm.hidden = true;
+    personToggle.hidden = !canEdit;
+    personForm.reset();
+    personSubmit.textContent = "Ekle";
+  }
+
+  function openPersonForm(person) {
+    expenseForm.hidden = true;
+    expenseToggle.hidden = !canEdit;
+    editingExpenseId = null;
+    expenseSubmit.textContent = "Harcama ekle";
+
+    personForm.hidden = false;
+    personToggle.hidden = true;
+    if (person) {
+      editingPersonId = person.id;
+      personNameInput.value = person.name;
+      personSubmit.textContent = "Kaydet";
+    } else {
+      editingPersonId = null;
+      personForm.reset();
+      personSubmit.textContent = "Ekle";
+    }
+    personNameInput.focus();
+  }
+
+  function closeExpenseForm() {
+    editingExpenseId = null;
+    expenseForm.hidden = true;
+    expenseToggle.hidden = !canEdit;
+    expenseForm.reset();
+    expenseSubmit.textContent = "Harcama ekle";
+    fillPeopleOptions();
+  }
+
+  function openExpenseForm(expense) {
+    if (!(trip.people || []).length) {
+      showMessage("Önce en az bir kişi ekle.", "error");
+      return;
+    }
+
+    personForm.hidden = true;
+    personToggle.hidden = !canEdit;
+    editingPersonId = null;
+    personSubmit.textContent = "Ekle";
+
+    expenseForm.hidden = false;
+    expenseToggle.hidden = true;
+
+    if (expense) {
+      editingExpenseId = expense.id;
+      expenseLabel.value = expense.label;
+      expenseAmount.value = expense.amount;
+      fillPeopleOptions(expense.personIds || []);
+      payerSelect.value = expense.payerId;
+      expenseSubmit.textContent = "Kaydet";
+    } else {
+      editingExpenseId = null;
+      expenseForm.reset();
+      fillPeopleOptions();
+      expenseSubmit.textContent = "Harcama ekle";
+    }
+    expenseLabel.focus();
+  }
+
+  function renderPeople() {
+    var people = trip.people || [];
+    if (!people.length) {
+      peopleList.innerHTML = '<li class="empty">Henüz kişi yok.</li>';
+    } else {
+      peopleList.innerHTML = people
+        .map(function (person) {
+          return (
+            '<li class="list-item">' +
+            '<div class="list-main"><div class="title">' +
+            window.PaybackTrips.escapeHtml(person.name) +
+            "</div></div>" +
+            (canEdit
+              ? '<div class="row-actions">' +
+                '<button type="button" class="btn btn-ghost btn-tiny" data-edit-person="' +
+                window.PaybackTrips.escapeHtml(person.id) +
+                '">Düzenle</button>' +
+                '<button type="button" class="btn btn-ghost btn-tiny danger" data-remove-person="' +
+                window.PaybackTrips.escapeHtml(person.id) +
+                '">Sil</button></div>'
+              : "") +
+            "</li>"
+          );
+        })
+        .join("");
+    }
+
+    if (expenseForm.hidden) fillPeopleOptions();
   }
 
   function renderExpenses() {
@@ -105,7 +213,7 @@
           .join(", ");
         return (
           '<li class="list-item">' +
-          "<div>" +
+          '<div class="list-main">' +
           '<div class="title">' +
           window.PaybackTrips.escapeHtml(expense.label) +
           " · " +
@@ -119,9 +227,13 @@
           window.PaybackTrips.escapeHtml(included) +
           "</div></div>" +
           (canEdit
-            ? '<button type="button" class="btn btn-ghost danger" data-remove-expense="' +
+            ? '<div class="row-actions">' +
+              '<button type="button" class="btn btn-ghost btn-tiny" data-edit-expense="' +
               window.PaybackTrips.escapeHtml(expense.id) +
-              '">Sil</button>'
+              '">Düzenle</button>' +
+              '<button type="button" class="btn btn-ghost btn-tiny danger" data-remove-expense="' +
+              window.PaybackTrips.escapeHtml(expense.id) +
+              '">Sil</button></div>'
             : "") +
           "</li>"
         );
@@ -135,8 +247,8 @@
     noteEl.textContent = trip.note || "Kişi ve harcama ekle, sonra hesabı çıkar.";
     settleBtn.href = window.PaybackTrips.publicUrl(trip.id);
     ownerActions.hidden = false;
-    personToggle.hidden = !personForm.hidden;
-    expenseToggle.hidden = !expenseForm.hidden;
+    if (personForm.hidden) personToggle.hidden = !canEdit;
+    if (expenseForm.hidden) expenseToggle.hidden = !canEdit;
   }
 
   function renderAll() {
@@ -232,8 +344,24 @@
   personForm.addEventListener("submit", async function (event) {
     event.preventDefault();
     if (!canEdit) return;
-    var name = personForm.querySelector("#person-name").value.trim();
+    var name = personNameInput.value.trim();
     if (!name) return;
+
+    if (editingPersonId) {
+      trip.people = (trip.people || []).map(function (person) {
+        if (person.id !== editingPersonId) return person;
+        return { id: person.id, name: name };
+      });
+      try {
+        await persist();
+        closePersonForm();
+        showMessage("Kişi güncellendi.", "success");
+      } catch (error) {
+        showMessage(error.message, "error");
+      }
+      return;
+    }
+
     if ((trip.people || []).length >= window.PaybackTrips.MAX_PEOPLE) {
       showMessage("En fazla " + window.PaybackTrips.MAX_PEOPLE + " kişi eklenebilir.", "error");
       return;
@@ -246,7 +374,8 @@
       personForm.reset();
       personForm.hidden = false;
       personToggle.hidden = true;
-      personForm.querySelector("#person-name").focus();
+      personSubmit.textContent = "Ekle";
+      personNameInput.focus();
       showMessage("Kişi eklendi.", "success");
     } catch (error) {
       showMessage(error.message, "error");
@@ -260,6 +389,39 @@
       showMessage("Önce en az bir kişi ekle.", "error");
       return;
     }
+
+    var personIds = selectedPersonIds();
+    if (!personIds.length) {
+      showMessage("En az bir dahil kişi seç.", "error");
+      return;
+    }
+
+    var label = expenseLabel.value.trim();
+    var amount = Number(expenseAmount.value);
+    var payerId = payerSelect.value;
+
+    if (editingExpenseId) {
+      trip.expenses = (trip.expenses || []).map(function (expense) {
+        if (expense.id !== editingExpenseId) return expense;
+        return {
+          id: expense.id,
+          payerId: payerId,
+          label: label,
+          amount: amount,
+          personIds: personIds,
+          createdAt: expense.createdAt || new Date().toISOString()
+        };
+      });
+      try {
+        await persist();
+        closeExpenseForm();
+        showMessage("Harcama güncellendi.", "success");
+      } catch (error) {
+        showMessage(error.message, "error");
+      }
+      return;
+    }
+
     if ((trip.expenses || []).length >= window.PaybackTrips.MAX_EXPENSES) {
       showMessage(
         "En fazla " + window.PaybackTrips.MAX_EXPENSES + " harcama eklenebilir.",
@@ -268,23 +430,12 @@
       return;
     }
 
-    var personIds = Array.from(
-      peopleChecks.querySelectorAll('input[name="personIds"]:checked')
-    ).map(function (input) {
-      return input.value;
-    });
-
-    if (!personIds.length) {
-      showMessage("En az bir dahil kişi seç.", "error");
-      return;
-    }
-
     trip.expenses = (trip.expenses || []).concat([
       {
         id: window.PaybackTrips.createId(),
-        payerId: payerSelect.value,
-        label: expenseForm.querySelector("#expense-label").value.trim(),
-        amount: Number(expenseForm.querySelector("#expense-amount").value),
+        payerId: payerId,
+        label: label,
+        amount: amount,
         personIds: personIds,
         createdAt: new Date().toISOString()
       }
@@ -292,21 +443,30 @@
 
     try {
       await persist();
-      expenseForm.querySelector("#expense-label").value = "";
-      expenseForm.querySelector("#expense-amount").value = "";
-      peopleChecks.querySelectorAll('input[name="personIds"]').forEach(function (input) {
-        input.checked = true;
-      });
+      expenseLabel.value = "";
+      expenseAmount.value = "";
+      setIncludeChecks([], true);
       showMessage("Harcama eklendi.", "success");
       expenseForm.hidden = false;
       expenseToggle.hidden = true;
-      expenseForm.querySelector("#expense-label").focus();
+      expenseSubmit.textContent = "Harcama ekle";
+      expenseLabel.focus();
     } catch (error) {
       showMessage(error.message, "error");
     }
   });
 
   peopleList.addEventListener("click", async function (event) {
+    var editButton = event.target.closest("[data-edit-person]");
+    if (editButton && canEdit) {
+      var editId = editButton.getAttribute("data-edit-person");
+      var person = (trip.people || []).find(function (row) {
+        return row.id === editId;
+      });
+      if (person) openPersonForm(person);
+      return;
+    }
+
     var button = event.target.closest("[data-remove-person]");
     if (!button || !canEdit) return;
     var id = button.getAttribute("data-remove-person");
@@ -325,6 +485,7 @@
     });
     try {
       await persist();
+      if (editingPersonId === id) closePersonForm();
       showMessage("Kişi silindi.", "success");
     } catch (error) {
       showMessage(error.message, "error");
@@ -332,6 +493,16 @@
   });
 
   expenseList.addEventListener("click", async function (event) {
+    var editButton = event.target.closest("[data-edit-expense]");
+    if (editButton && canEdit) {
+      var editId = editButton.getAttribute("data-edit-expense");
+      var expense = (trip.expenses || []).find(function (row) {
+        return row.id === editId;
+      });
+      if (expense) openExpenseForm(expense);
+      return;
+    }
+
     var button = event.target.closest("[data-remove-expense]");
     if (!button || !canEdit) return;
     var id = button.getAttribute("data-remove-expense");
@@ -340,6 +511,7 @@
     });
     try {
       await persist();
+      if (editingExpenseId === id) closeExpenseForm();
       showMessage("Harcama silindi.", "success");
     } catch (error) {
       showMessage(error.message, "error");
@@ -347,34 +519,27 @@
   });
 
   personToggle.addEventListener("click", function () {
-    personForm.hidden = false;
-    personToggle.hidden = true;
-    personForm.querySelector("#person-name").focus();
+    openPersonForm(null);
   });
 
   personCancel.addEventListener("click", function () {
-    personForm.hidden = true;
-    personToggle.hidden = false;
-    personForm.reset();
+    closePersonForm();
   });
 
   expenseToggle.addEventListener("click", function () {
-    if (!(trip.people || []).length) {
-      showMessage("Önce en az bir kişi ekle.", "error");
-      return;
-    }
-    expenseForm.hidden = false;
-    expenseToggle.hidden = true;
-    expenseForm.querySelector("#expense-label").focus();
+    openExpenseForm(null);
   });
 
   expenseCancel.addEventListener("click", function () {
-    expenseForm.hidden = true;
-    expenseToggle.hidden = false;
-    expenseForm.reset();
-    peopleChecks.querySelectorAll('input[name="personIds"]').forEach(function (input) {
-      input.checked = true;
-    });
+    closeExpenseForm();
+  });
+
+  includeAll.addEventListener("click", function () {
+    setIncludeChecks([], true);
+  });
+
+  includeNone.addEventListener("click", function () {
+    setIncludeChecks([], false);
   });
 
   deleteTripBtn.addEventListener("click", async function () {
