@@ -180,9 +180,21 @@ main { flex: 1; padding: 40px 0 56px; }
   color: var(--muted);
 }
 
+.hero-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .meta {
   color: var(--faint);
   font-size: 13px;
+}
+
+.hero-toolbar .meta {
+  margin: 0;
 }
 
 .panel {

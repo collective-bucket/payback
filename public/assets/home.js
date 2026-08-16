@@ -68,8 +68,8 @@
 
       if (!trips.length) {
         listEl.innerHTML =
-          '<p class="empty">Henüz yolculuk yok. Yukarıdan ilkini oluştur.</p>';
-        setStatus("");
+          '<p class="empty">Henüz yolculuk yok. Yolculuk ekle ile ilkini oluştur.</p>';
+        setStatus("0 yolculuk");
         return;
       }
 
