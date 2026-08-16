@@ -43,16 +43,22 @@
             <p id="trip-note"></p>
           </div>
           <div class="actions hero-actions" id="owner-actions" hidden>
-            <a id="settle-btn" class="btn btn-primary" href="#">Hesabı çıkar</a>
-            <button id="delete-trip" class="btn btn-ghost danger" type="button">Yolculuğu sil</button>
+            <a id="settle-btn" class="btn btn-primary" href="#">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3H7V4zm-1 5h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9zm4 3h6v2H10v-2zm0 4h6v2H10v-2z"/></svg>
+              <span>Hesabı çıkar</span>
+            </a>
+            <button id="delete-trip" class="btn btn-ghost danger" type="button">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h4v2H4V6h4l1-2zm1 6h2v8h-2v-8zm4 0h2v8h-2v-8zM7 10h2v8H7v-8z"/></svg>
+              <span>Yolculuğu sil</span>
+            </button>
           </div>
         </section>
 
         <section class="panel">
           <div class="panel-head">
             <h2>Kişiler</h2>
-            <button id="person-toggle" class="btn btn-primary" type="button" hidden>
-              Ekle
+            <button id="person-toggle" class="btn btn-primary btn-icon" type="button" hidden aria-label="Kişi ekle" title="Kişi ekle">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             </button>
           </div>
           <form id="person-form" class="compact-row" hidden>
@@ -64,8 +70,12 @@
               aria-label="Kişi adı"
               required
             />
-            <button id="person-submit" class="btn btn-primary" type="submit">Ekle</button>
-            <button id="person-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
+            <button id="person-submit" class="btn btn-primary btn-icon" type="submit" aria-label="Ekle" title="Ekle">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <button id="person-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç" title="Vazgeç">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
           </form>
           <ul id="people-list" class="list"></ul>
         </section>
@@ -73,8 +83,8 @@
         <section class="panel">
           <div class="panel-head">
             <h2>Harcamalar</h2>
-            <button id="expense-toggle" class="btn btn-primary" type="button" hidden>
-              Ekle
+            <button id="expense-toggle" class="btn btn-primary btn-icon" type="button" hidden aria-label="Harcama ekle" title="Harcama ekle">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             </button>
           </div>
           <form id="expense-form" class="compact-form" hidden>
@@ -103,7 +113,9 @@
 
             <div class="actions">
               <button id="expense-submit" class="btn btn-primary" type="submit">Harcama ekle</button>
-              <button id="expense-cancel" class="btn btn-ghost" type="button">Vazgeç</button>
+              <button id="expense-cancel" class="btn btn-ghost btn-icon" type="button" aria-label="Vazgeç" title="Vazgeç">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
             </div>
           </form>
           <ul id="expense-list" class="list"></ul>

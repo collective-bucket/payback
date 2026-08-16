@@ -36,6 +36,17 @@
   var editingPersonId = null;
   var editingExpenseId = null;
 
+  var ICONS = {
+    plus:
+      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    edit:
+      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5-4-4L4 16v4zm11.5-15.5 4 4"/></svg>',
+    trash:
+      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h4v2H4V6h4l1-2zm1 6h2v8h-2v-8zm4 0h2v8h-2v-8zM7 10h2v8H7v-8z"/></svg>',
+    check:
+      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7.5"/></svg>'
+  };
+
   function showMessage(text, type) {
     messageEl.textContent = text || "";
     messageEl.className = "message" + (type ? " message-" + type : "");
@@ -103,7 +114,9 @@
     personForm.hidden = true;
     personToggle.hidden = !canEdit;
     personForm.reset();
-    personSubmit.textContent = "Ekle";
+    personSubmit.innerHTML = ICONS.plus;
+    personSubmit.setAttribute("aria-label", "Ekle");
+    personSubmit.setAttribute("title", "Ekle");
   }
 
   function openPersonForm(person) {
@@ -117,11 +130,15 @@
     if (person) {
       editingPersonId = person.id;
       personNameInput.value = person.name;
-      personSubmit.textContent = "Kaydet";
+      personSubmit.innerHTML = ICONS.check;
+      personSubmit.setAttribute("aria-label", "Kaydet");
+      personSubmit.setAttribute("title", "Kaydet");
     } else {
       editingPersonId = null;
       personForm.reset();
-      personSubmit.textContent = "Ekle";
+      personSubmit.innerHTML = ICONS.plus;
+      personSubmit.setAttribute("aria-label", "Ekle");
+      personSubmit.setAttribute("title", "Ekle");
     }
     personNameInput.focus();
   }
@@ -144,7 +161,9 @@
     personForm.hidden = true;
     personToggle.hidden = !canEdit;
     editingPersonId = null;
-    personSubmit.textContent = "Ekle";
+    personSubmit.innerHTML = ICONS.plus;
+    personSubmit.setAttribute("aria-label", "Ekle");
+    personSubmit.setAttribute("title", "Ekle");
 
     expenseForm.hidden = false;
     expenseToggle.hidden = true;
@@ -179,12 +198,16 @@
             "</div></div>" +
             (canEdit
               ? '<div class="row-actions">' +
-                '<button type="button" class="btn btn-ghost btn-tiny" data-edit-person="' +
+                '<button type="button" class="btn btn-ghost btn-icon" data-edit-person="' +
                 window.PaybackTrips.escapeHtml(person.id) +
-                '">Düzenle</button>' +
-                '<button type="button" class="btn btn-ghost btn-tiny danger" data-remove-person="' +
+                '" aria-label="Düzenle" title="Düzenle">' +
+                ICONS.edit +
+                "</button>" +
+                '<button type="button" class="btn btn-ghost btn-icon danger" data-remove-person="' +
                 window.PaybackTrips.escapeHtml(person.id) +
-                '">Sil</button></div>'
+                '" aria-label="Sil" title="Sil">' +
+                ICONS.trash +
+                "</button></div>"
               : "") +
             "</li>"
           );
@@ -228,12 +251,16 @@
           "</div></div>" +
           (canEdit
             ? '<div class="row-actions">' +
-              '<button type="button" class="btn btn-ghost btn-tiny" data-edit-expense="' +
+              '<button type="button" class="btn btn-ghost btn-icon" data-edit-expense="' +
               window.PaybackTrips.escapeHtml(expense.id) +
-              '">Düzenle</button>' +
-              '<button type="button" class="btn btn-ghost btn-tiny danger" data-remove-expense="' +
+              '" aria-label="Düzenle" title="Düzenle">' +
+              ICONS.edit +
+              "</button>" +
+              '<button type="button" class="btn btn-ghost btn-icon danger" data-remove-expense="' +
               window.PaybackTrips.escapeHtml(expense.id) +
-              '">Sil</button></div>'
+              '" aria-label="Sil" title="Sil">' +
+              ICONS.trash +
+              "</button></div>"
             : "") +
           "</li>"
         );
@@ -374,7 +401,9 @@
       personForm.reset();
       personForm.hidden = false;
       personToggle.hidden = true;
-      personSubmit.textContent = "Ekle";
+      personSubmit.innerHTML = ICONS.plus;
+      personSubmit.setAttribute("aria-label", "Ekle");
+      personSubmit.setAttribute("title", "Ekle");
       personNameInput.focus();
       showMessage("Kişi eklendi.", "success");
     } catch (error) {
