@@ -43,15 +43,9 @@
   }
 
   async function requireSession() {
-    var client = await waitForAuth();
-    var session = await client.getSession({ forceRefresh: true });
+    var session = await getOptionalSession();
     if (!session || !session.idToken) {
-      window.location.assign(
-        window.PaybackConfig.authOrigin +
-          "/?returnTo=" +
-          encodeURIComponent(window.location.href)
-      );
-      throw new Error("Giriş gerekli.");
+      throw new Error("Kaydetmek için giriş yap.");
     }
     return session;
   }

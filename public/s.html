@@ -10,22 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="https://collectivebucket.com/assets/shell.css" />
 </head>
 <body>
-  <header class="nav">
-    <div class="wrap">
-      <a class="brand" href="/">
-        <img src="/assets/logo.svg" alt="" />
-        <span>Payback</span>
-      </a>
-      <button class="nav-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="nav-cta">
-        <div class="cb-auth-controls" data-cb-auth></div>
-      </div>
-    </div>
-  </header>
+  <header data-cb-shell="header"></header>
 
   <main>
     <div class="wrap">
@@ -61,13 +49,9 @@
     </div>
   </main>
 
-  <footer>
-    <div class="wrap">
-      <span>Payback</span>
-      <a href="https://collectivebucket.com">collectivebucket.com</a>
-    </div>
-  </footer>
+  <footer data-cb-shell="footer"></footer>
 
+  <script src="https://collectivebucket.com/assets/shell.js" defer></script>
   <script src="https://auth.collectivebucket.com/client.js" defer></script>
   <script src="/assets/config.js" defer></script>
   <script src="/assets/firestore.js" defer></script>
