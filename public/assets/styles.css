@@ -237,6 +237,41 @@ main { flex: 1; padding: 40px 0 56px; }
   font-size: 18px;
 }
 
+.panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.panel[open] > summary {
+  margin-bottom: 14px;
+}
+
+.panel[open] > summary::after {
+  transform: rotate(225deg);
+}
+
 .panel-intro,
 .auth-prompt p {
   margin: 0 0 16px;
