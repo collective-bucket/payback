@@ -19,12 +19,6 @@
   var canMarkPaid = false;
   var savingPaid = false;
   var filterPersonId = "";
-  var SHARE_ICON =
-    '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' +
-    '<path d="M12 3v11"/>' +
-    '<path d="M8 7l4-4 4 4"/>' +
-    '<rect x="5" y="13" width="14" height="8" rx="2"/>' +
-    "</svg>";
 
   function summaryIdFromPath() {
     var parts = window.location.pathname.split("/").filter(Boolean);
@@ -173,13 +167,11 @@
         var iban = window.PaybackTrips.personIban(source, payment.toId);
         var share = paymentSharePayload(payment, iban);
         var ibanHtml = iban
-          ? '<div class="payment-iban"><span>' +
+          ? '<div class="payment-iban">' +
             window.PaybackTrips.escapeHtml(
               window.PaybackTrips.formatIban(iban)
             ) +
-            '</span><button type="button" class="btn btn-ghost btn-icon" aria-label="Paylaş" title="Paylaş">' +
-            SHARE_ICON +
-            "</button></div>"
+            "</div>"
           : "";
         var checkbox =
           '<label class="payment-paid">' +
