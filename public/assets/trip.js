@@ -14,6 +14,7 @@
   var personDialogTitle = document.querySelector("#person-dialog-title");
   var expenseDialogTitle = document.querySelector("#expense-dialog-title");
   var personNameInput = document.querySelector("#person-name");
+  var personIbanInput = document.querySelector("#person-iban");
   var personSubmit = document.querySelector("#person-submit");
   var personDelete = document.querySelector("#person-delete");
   var payerSelect = document.querySelector("#expense-payer");
@@ -169,12 +170,28 @@
     resetExpenseFormState();
   }
 
+  function readPersonIban() {
+    var iban = window.PaybackTrips.normalizeIban(personIbanInput.value);
+    if (!window.PaybackTrips.isValidIban(iban)) {
+      showFormMessage(
+        personMessage,
+        "Geçerli bir TR IBAN gir (TR + 24 rakam).",
+        "error"
+      );
+      return null;
+    }
+    return iban;
+  }
+
   function openPersonDialog(person) {
     closeExpenseDialog();
     showFormMessage(personMessage, "");
     if (person) {
       editingPersonId = person.id;
       personNameInput.value = person.name;
+      personIbanInput.value = person.iban
+        ? window.PaybackTrips.formatIban(person.iban)
+        : "";
       personDialogTitle.textContent = "Kişiyi düzenle";
       personSubmit.textContent = "Kaydet";
       personDelete.hidden = false;
@@ -254,6 +271,10 @@
           return expense.label;
         });
         var detail = labels.length ? labels.join(", ") : "Harcama yok";
+        if (person.iban) {
+          detail =
+            window.PaybackTrips.formatIban(person.iban) + " · " + detail;
+        }
         var title =
           window.PaybackTrips.escapeHtml(person.name) +
           " · " +
@@ -474,6 +495,8 @@
     if (!canEdit || saving) return;
     var name = personNameInput.value.trim();
     if (!name) return;
+    var iban = readPersonIban();
+    if (iban === null) return;
 
     var draft = cloneTrip(trip);
     saving = true;
@@ -483,7 +506,7 @@
       if (editingPersonId) {
         draft.people = (draft.people || []).map(function (person) {
           if (person.id !== editingPersonId) return person;
-          return { id: person.id, name: name };
+          return { id: person.id, name: name, iban: iban };
         });
         await persistDraft(draft);
         closePersonDialog();
@@ -501,7 +524,7 @@
       }
 
       draft.people = (draft.people || []).concat([
-        { id: window.PaybackTrips.createId(), name: name }
+        { id: window.PaybackTrips.createId(), name: name, iban: iban }
       ]);
       await persistDraft(draft);
       resetPersonFormState();

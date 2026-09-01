@@ -13,6 +13,10 @@
   var copyButton = document.querySelector("#copy-summary-link");
   var summaryUrl = "";
   var summaryTitle = "";
+  var trip = null;
+  var session = null;
+  var canMarkPaid = false;
+  var savingPaid = false;
 
   function summaryIdFromPath() {
     var parts = window.location.pathname.split("/").filter(Boolean);
@@ -25,13 +29,26 @@
     messageEl.className = "message" + (type ? " message-" + type : "");
   }
 
+  function applySession(nextSession) {
+    session = nextSession && nextSession.idToken ? nextSession : null;
+    canMarkPaid = Boolean(session && trip && session.uid === trip.ownerUid);
+  }
+
+  function paidLookup(source) {
+    var map = {};
+    ((source && source.paidPayments) || []).forEach(function (key) {
+      map[key] = true;
+    });
+    return map;
+  }
+
   async function copySummaryUrl() {
     await navigator.clipboard.writeText(summaryUrl);
     showMessage("Link kopyalandı.", "success");
   }
 
-  function renderExpenses(trip) {
-    var expenses = trip.expenses || [];
+  function renderExpenses(source) {
+    var expenses = source.expenses || [];
     if (!expenses.length) {
       expensesEl.innerHTML = '<li class="empty">Henüz harcama yok.</li>';
       return;
@@ -43,7 +60,7 @@
       .map(function (expense) {
         var included = (expense.personIds || [])
           .map(function (id) {
-            return window.PaybackTrips.personName(trip, id);
+            return window.PaybackTrips.personName(source, id);
           })
           .join(", ");
         return (
@@ -55,7 +72,7 @@
           "</div>" +
           '<div class="sub">Ödeyen: ' +
           window.PaybackTrips.escapeHtml(
-            window.PaybackTrips.personName(trip, expense.payerId)
+            window.PaybackTrips.personName(source, expense.payerId)
           ) +
           " · Dahil: " +
           window.PaybackTrips.escapeHtml(included) +
@@ -65,9 +82,10 @@
       .join("");
   }
 
-  function renderSettlement(trip) {
-    var result = window.PaybackSettle.settle(trip);
-    var expenses = trip.expenses || [];
+  function renderSettlement(source) {
+    var result = window.PaybackSettle.settle(source);
+    var expenses = source.expenses || [];
+    var paid = paidLookup(source);
 
     balancesEl.innerHTML = result.status.length
       ? result.status
@@ -97,21 +115,97 @@
           .join("")
       : '<li class="empty">Kişi yok.</li>';
 
-    paymentsEl.innerHTML = result.payments.length
-      ? result.payments
-          .map(function (payment) {
-            return (
-              '<div class="payment-row"><span>' +
-              window.PaybackTrips.escapeHtml(payment.fromName) +
-              " → " +
-              window.PaybackTrips.escapeHtml(payment.toName) +
-              '</span><span class="amount">' +
-              window.PaybackTrips.formatMoney(payment.amount) +
-              "</span></div>"
-            );
-          })
-          .join("")
-      : '<p class="empty">Ödeme gerekmiyor. Herkes denk.</p>';
+    if (!result.payments.length) {
+      paymentsEl.innerHTML = '<p class="empty">Ödeme gerekmiyor. Herkes denk.</p>';
+      return;
+    }
+
+    paymentsEl.innerHTML = result.payments
+      .map(function (payment) {
+        var key = window.PaybackTrips.paymentKey(payment.fromId, payment.toId);
+        var isPaid = Boolean(paid[key]);
+        var iban = window.PaybackTrips.personIban(source, payment.toId);
+        var ibanHtml = iban
+          ? '<div class="payment-iban"><span>' +
+            window.PaybackTrips.escapeHtml(
+              window.PaybackTrips.formatIban(iban)
+            ) +
+            '</span><button type="button" class="btn btn-ghost btn-tiny" data-copy-iban="' +
+            window.PaybackTrips.escapeHtml(iban) +
+            '">Kopyala</button></div>'
+          : "";
+        var checkbox =
+          '<label class="payment-paid">' +
+          '<input type="checkbox" data-payment-key="' +
+          window.PaybackTrips.escapeHtml(key) +
+          '"' +
+          (isPaid ? " checked" : "") +
+          (canMarkPaid && !savingPaid ? "" : " disabled") +
+          (canMarkPaid
+            ? ""
+            : ' title="Yalnızca yolculuk sahibi işaretleyebilir"') +
+          ' />' +
+          "<span>Ödendi</span></label>";
+
+        return (
+          '<div class="payment-row' +
+          (isPaid ? " is-paid" : "") +
+          '"><div class="payment-main"><div class="payment-who">' +
+          window.PaybackTrips.escapeHtml(payment.fromName) +
+          " → " +
+          window.PaybackTrips.escapeHtml(payment.toName) +
+          "</div>" +
+          ibanHtml +
+          '</div><div class="payment-side"><span class="amount">' +
+          window.PaybackTrips.formatMoney(payment.amount) +
+          "</span>" +
+          checkbox +
+          "</div></div>"
+        );
+      })
+      .join("");
+  }
+
+  async function setPaid(key, checked) {
+    if (!trip || !canMarkPaid || savingPaid) {
+      if (trip) renderSettlement(trip);
+      return;
+    }
+
+    var previous = (trip.paidPayments || []).slice();
+    var next = previous.filter(function (item) {
+      return item !== key;
+    });
+    if (checked) {
+      if (next.length >= window.PaybackTrips.MAX_PAID_PAYMENTS) {
+        showMessage(
+          "En fazla " +
+            window.PaybackTrips.MAX_PAID_PAYMENTS +
+            " ödeme işaretlenebilir.",
+          "error"
+        );
+        renderSettlement(trip);
+        return;
+      }
+      next.push(key);
+    }
+
+    trip.paidPayments = next;
+    savingPaid = true;
+    renderSettlement(trip);
+
+    try {
+      session = await window.PaybackTrips.requireSession();
+      applySession(session);
+      trip = await window.PaybackTrips.saveTrip(trip, session);
+      showMessage(checked ? "Ödeme ödendi olarak işaretlendi." : "Ödeme işareti kaldırıldı.", "success");
+    } catch (error) {
+      trip.paidPayments = previous;
+      showMessage(error.message, "error");
+    } finally {
+      savingPaid = false;
+      renderSettlement(trip);
+    }
   }
 
   async function boot() {
@@ -122,12 +216,14 @@
     }
 
     try {
-      var trip = await window.PaybackTrips.getTrip(id);
+      applySession(await window.PaybackTrips.getOptionalSession());
+      trip = await window.PaybackTrips.getTrip(id);
       if (!trip) {
         showMessage("Yolculuk bulunamadı.", "error");
         return;
       }
 
+      applySession(session);
       document.title = trip.title + " · Özet | Payback";
       titleEl.textContent = trip.title;
       noteEl.textContent = trip.note || "Yolculuk harcamaları ve hesap özeti.";
@@ -166,6 +262,29 @@
     } catch {
       showMessage("Link kopyalanamadı.", "error");
     }
+  });
+
+  paymentsEl.addEventListener("click", async function (event) {
+    var button = event.target.closest("[data-copy-iban]");
+    if (!button) return;
+    event.preventDefault();
+    try {
+      await navigator.clipboard.writeText(button.getAttribute("data-copy-iban") || "");
+      showMessage("IBAN kopyalandı.", "success");
+    } catch {
+      showMessage("IBAN kopyalanamadı.", "error");
+    }
+  });
+
+  paymentsEl.addEventListener("change", function (event) {
+    var input = event.target.closest("[data-payment-key]");
+    if (!input) return;
+    setPaid(input.getAttribute("data-payment-key"), input.checked);
+  });
+
+  window.addEventListener("cb-auth-changed", function (event) {
+    applySession(event.detail && event.detail.session);
+    if (trip) renderSettlement(trip);
   });
 
   boot();

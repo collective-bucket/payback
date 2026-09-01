@@ -57,6 +57,13 @@ service cloud.firestore {
           && request.resource.data.people.size() <= 30
           && request.resource.data.expenses is list
           && request.resource.data.expenses.size() <= 200
+          && (
+            !request.resource.data.keys().hasAny(['paidPayments'])
+            || (
+              request.resource.data.paidPayments is list
+              && request.resource.data.paidPayments.size() <= 30
+            )
+          )
           && request.resource.data.createdAt is string
           && request.resource.data.updatedAt is string;
       }

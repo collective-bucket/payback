@@ -471,6 +471,79 @@ textarea { min-height: 88px; resize: vertical; }
   font-weight: 500;
 }
 
+.payment-row {
+  align-items: flex-start;
+}
+
+.payment-row.is-paid {
+  opacity: 0.58;
+}
+
+.payment-row.is-paid .payment-who {
+  text-decoration: line-through;
+}
+
+.payment-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.payment-who {
+  font-weight: 500;
+}
+
+.payment-iban {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.payment-iban .btn {
+  flex: 0 0 auto;
+}
+
+.payment-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.payment-paid {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.payment-paid input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.payment-paid:has(input:disabled) {
+  cursor: default;
+  color: var(--muted);
+}
+
+.field-hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .positive { color: var(--accent-strong); }
 .negative { color: var(--danger); }
 .neutral { color: var(--muted); }
