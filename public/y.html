@@ -78,6 +78,18 @@
           aria-label="Kişi adı"
           required
         />
+        <label for="person-iban">IBAN</label>
+        <input
+          id="person-iban"
+          type="text"
+          maxlength="42"
+          placeholder="TR00 ACCT-000014 0000 00"
+          aria-label="IBAN"
+          autocomplete="off"
+          spellcheck="false"
+          autocapitalize="characters"
+        />
+        <p class="field-hint">İsteğe bağlı. TR + 24 rakam.</p>
         <p id="person-message" class="message" role="status"></p>
       </div>
       <div class="modal-actions">

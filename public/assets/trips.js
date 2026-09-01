@@ -3,6 +3,8 @@
 
   var MAX_PEOPLE = 30;
   var MAX_EXPENSES = 200;
+  var MAX_PAID_PAYMENTS = 30;
+  var IBAN_PATTERN = /^TR[0-9]{24}$/;
 
   function nowIso() {
     return new Date().toISOString();
@@ -61,6 +63,27 @@
     }
   }
 
+  function normalizeIban(value) {
+    return String(value || "")
+      .toUpperCase()
+      .replace(/[\s-]/g, "")
+      .slice(0, 34);
+  }
+
+  function isValidIban(iban) {
+    return !iban || IBAN_PATTERN.test(iban);
+  }
+
+  function formatIban(value) {
+    var iban = normalizeIban(value);
+    if (!iban) return "";
+    return iban.replace(/(.{4})/g, "$1 ").trim();
+  }
+
+  function paymentKey(fromId, toId) {
+    return String(fromId || "").trim() + ":" + String(toId || "").trim();
+  }
+
   function normalizePeople(people) {
     if (!Array.isArray(people)) return [];
     return people
@@ -68,10 +91,38 @@
         var name = String((person && person.name) || "").trim().slice(0, 60);
         var id = String((person && person.id) || "").trim().slice(0, 40);
         if (!name || !id) return null;
-        return { id: id, name: name };
+        var iban = normalizeIban(person && person.iban);
+        if (!isValidIban(iban)) iban = "";
+        return { id: id, name: name, iban: iban };
       })
       .filter(Boolean)
       .slice(0, MAX_PEOPLE);
+  }
+
+  function normalizePaidPayments(list, people) {
+    var peopleIds = {};
+    (people || []).forEach(function (person) {
+      peopleIds[person.id] = true;
+    });
+
+    if (!Array.isArray(list)) return [];
+    var seen = {};
+    return list
+      .map(function (entry) {
+        var value = String(entry || "").trim();
+        var parts = value.split(":");
+        if (parts.length !== 2) return null;
+        var fromId = String(parts[0] || "").trim().slice(0, 40);
+        var toId = String(parts[1] || "").trim().slice(0, 40);
+        if (!fromId || !toId || fromId === toId) return null;
+        if (!peopleIds[fromId] || !peopleIds[toId]) return null;
+        var key = paymentKey(fromId, toId);
+        if (seen[key]) return null;
+        seen[key] = true;
+        return key;
+      })
+      .filter(Boolean)
+      .slice(0, MAX_PAID_PAYMENTS);
   }
 
   function normalizeExpenses(expenses, people) {
@@ -126,6 +177,7 @@
       note: String((input && input.note) || "").trim().slice(0, 500),
       people: people,
       expenses: expenses,
+      paidPayments: normalizePaidPayments(input && input.paidPayments, people),
       createdAt: existing ? existing.createdAt || nowIso() : nowIso(),
       updatedAt: nowIso()
     };
@@ -197,12 +249,24 @@
     return person ? person.name : "Bilinmeyen";
   }
 
+  function personIban(trip, personId) {
+    var person = ((trip && trip.people) || []).find(function (row) {
+      return row.id === personId;
+    });
+    return person && person.iban ? person.iban : "";
+  }
+
   window.PaybackTrips = {
     MAX_PEOPLE: MAX_PEOPLE,
     MAX_EXPENSES: MAX_EXPENSES,
+    MAX_PAID_PAYMENTS: MAX_PAID_PAYMENTS,
     createId: createId,
     escapeHtml: escapeHtml,
     formatMoney: formatMoney,
+    normalizeIban: normalizeIban,
+    isValidIban: isValidIban,
+    formatIban: formatIban,
+    paymentKey: paymentKey,
     waitForAuth: waitForAuth,
     requireSession: requireSession,
     getOptionalSession: getOptionalSession,
@@ -213,6 +277,7 @@
     removeTrip: removeTrip,
     publicUrl: publicUrl,
     personName: personName,
+    personIban: personIban,
     normalizePeople: normalizePeople,
     normalizeExpenses: normalizeExpenses
   };
