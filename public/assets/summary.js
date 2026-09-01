@@ -19,10 +19,11 @@
   var canMarkPaid = false;
   var savingPaid = false;
   var filterPersonId = "";
-  var COPY_IBAN_ICON =
+  var SHARE_ICON =
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' +
-    '<rect x="8" y="7" width="10" height="13" rx="1.5"/>' +
-    '<path d="M10 7V5h4v2"/>' +
+    '<path d="M12 3v11"/>' +
+    '<path d="M8 7l4-4 4 4"/>' +
+    '<rect x="5" y="13" width="14" height="8" rx="2"/>' +
     "</svg>";
 
   function summaryIdFromPath() {
@@ -52,6 +53,36 @@
   async function copySummaryUrl() {
     await navigator.clipboard.writeText(summaryUrl);
     showMessage("Link kopyalandı.", "success");
+  }
+
+  async function sharePayment(row) {
+    var title = row.getAttribute("data-share-title") || "";
+    var text = row.getAttribute("data-share-text") || "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: title, text: text });
+        showMessage("Paylaşım ekranı açıldı.", "success");
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      showMessage("Ödeme bilgisi kopyalandı.", "success");
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(text);
+        showMessage("Ödeme bilgisi kopyalandı.", "success");
+      } catch {
+        showMessage("Paylaşılamadı.", "error");
+      }
+    }
+  }
+
+  function paymentSharePayload(payment, iban) {
+    var who = payment.fromName + " → " + payment.toName;
+    var amount = window.PaybackTrips.formatMoney(payment.amount);
+    var text = who + " · " + amount;
+    if (iban) text += "\n" + window.PaybackTrips.formatIban(iban);
+    return { title: who, text: text };
   }
 
   function renderExpenses(source) {
@@ -140,15 +171,14 @@
         var key = window.PaybackTrips.paymentKey(payment.fromId, payment.toId);
         var isPaid = Boolean(paid[key]);
         var iban = window.PaybackTrips.personIban(source, payment.toId);
+        var share = paymentSharePayload(payment, iban);
         var ibanHtml = iban
           ? '<div class="payment-iban"><span>' +
             window.PaybackTrips.escapeHtml(
               window.PaybackTrips.formatIban(iban)
             ) +
-            '</span><button type="button" class="btn btn-ghost btn-icon" data-copy-iban="' +
-            window.PaybackTrips.escapeHtml(iban) +
-            '" aria-label="IBAN kopyala" title="Kopyala">' +
-            COPY_IBAN_ICON +
+            '</span><button type="button" class="btn btn-ghost btn-icon" aria-label="Paylaş" title="Paylaş">' +
+            SHARE_ICON +
             "</button></div>"
           : "";
         var checkbox =
@@ -167,6 +197,10 @@
         return (
           '<div class="payment-row' +
           (isPaid ? " is-paid" : "") +
+          '" data-share-title="' +
+          window.PaybackTrips.escapeHtml(share.title) +
+          '" data-share-text="' +
+          window.PaybackTrips.escapeHtml(share.text) +
           '"><div class="payment-main"><div class="payment-who">' +
           window.PaybackTrips.escapeHtml(payment.fromName) +
           " → " +
@@ -318,15 +352,11 @@
   });
 
   paymentsEl.addEventListener("click", async function (event) {
-    var button = event.target.closest("[data-copy-iban]");
-    if (!button) return;
+    if (event.target.closest(".payment-paid")) return;
+    var row = event.target.closest(".payment-row");
+    if (!row) return;
     event.preventDefault();
-    try {
-      await navigator.clipboard.writeText(button.getAttribute("data-copy-iban") || "");
-      showMessage("IBAN kopyalandı.", "success");
-    } catch {
-      showMessage("IBAN kopyalanamadı.", "error");
-    }
+    await sharePayment(row);
   });
 
   paymentsEl.addEventListener("change", function (event) {

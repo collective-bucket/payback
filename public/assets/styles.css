@@ -481,6 +481,7 @@ textarea { min-height: 88px; resize: vertical; }
 
 .payment-row {
   align-items: flex-start;
+  cursor: pointer;
 }
 
 .payment-row.is-paid {
@@ -502,17 +503,29 @@ textarea { min-height: 88px; resize: vertical; }
 
 .payment-iban {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 4px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.payment-iban span {
+  min-width: 0;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .payment-iban .btn {
   flex: 0 0 auto;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
 }
 
 .payment-side {
