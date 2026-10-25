@@ -5,7 +5,7 @@
   "description": "Collective Bucket — yolculuk harcamalarını kişiler arasında denkleştir.",
   "scripts": {
     "serve": "firebase emulators:start --only hosting",
-    "deploy": "firebase deploy --only hosting:payback,firestore:rules",
+    "deploy": "firebase deploy --only hosting:payback",
     "stamp": "node scripts/stamp-assets.js",
     "check": "node --check public/assets/firestore.js && node --check public/assets/trips.js && node --check public/assets/settle.js && node --check public/assets/home.js && node --check public/assets/trip.js && node --check public/assets/summary.js && node --check public/assets/nav.js"
   },

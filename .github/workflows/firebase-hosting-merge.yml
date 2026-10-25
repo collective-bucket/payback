@@ -28,4 +28,4 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run stamp
-      - run: npx firebase-tools deploy --only hosting:payback,firestore:rules --token "${{ steps.auth.outputs.access_token }}" --non-interactive
+      - run: npx firebase-tools deploy --only hosting:payback --token "${{ steps.auth.outputs.access_token }}" --non-interactive
