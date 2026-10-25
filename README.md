@@ -30,3 +30,6 @@ npm run serve
 
 Firestore `trips` koleksiyonu. Tekil okuma herkese açık; listeleme ve yazma yalnızca
 yolculuk sahibi (`ownerUid`).
+
+Kurallar [collective-bucket/firestore](https://github.com/collective-bucket/firestore)
+reposunda tutulur ve yalnızca oradan deploy edilir; bu repo yalnızca hosting deploy eder.
